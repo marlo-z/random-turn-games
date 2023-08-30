@@ -1,5 +1,10 @@
-#Main Object - Game
-##subfields
+# Main Object - Game
+## subfields
 Two Players
+
 Graph
-Turn Generator
+
+## methods
+Turn()
+
+## abstract class player
