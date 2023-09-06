@@ -3,42 +3,46 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import random
 
+from Player import DefaultPlayer
+
 
 class Game:
-    def __init__(self, graph_type='random'):
-        self.graph = Graph()
+    def __init__(self, advantage = 0.5, graph_type='random'):
+        self.graph = Graph()                                            # upon initialization, every node will be set to color blue
         # TODO: actually well define min and max
         self.min_player = DefaultPlayer(True)
         self.max_player = DefaultPlayer(False)
-        self.curr_vertex = random.choice(
-            list(self.graph.graph.nodes))  # random vertex
-        self.graph.set_node_color(self.curr_vertex, 'red')
+        self.curr_vertex = random.choice(list(self.graph.graph.nodes))  # random vertex
+        self.graph.set_node_color(self.curr_vertex, 'red')              # curr_vertx = red, others = blue
+
+        self.advantage = advantage                                      # advantage = probability that MAX player moves
 
     def display(self):
         self.graph.display()
 
     def turn(self):
-        advantage = random.randint(0, 1)
-        self.graph.set_node_color(self.curr_vertex, 'skyblue')
-        if advantage == 1:
-            self.curr_vertex = self.max_player.strategy(
-                self.graph, self.curr_vertex)
-
-        else:
-            self.curr_vertex = self.min_player.strategy(
-                self.graph, self.curr_vertex)
+        self.graph.set_node_color(self.curr_vertex, 'blue')
+        
+        min_or_max_player = np.random.choice([0,1], p = [1-self.adavantage, self.advantage])
+        chosen_player = [self.min_player, self.max_player][min_or_max_player]
+        self.curr_vertex = chosen_player.strategy(self.graph, self.curr_vertex)
+        
         self.graph.set_node_color(self.curr_vertex, 'red')
+
+        # return whether or not game has ended
+        return False
 
 
 class Graph:
     # TODO: add attributes to each vertex --> representing value of boundary vertices
     def __init__(self, n=10, p=0.1):
-        self.node_colors = {}
+        self.node_colors = ['blue' for _ in range(n)]
+        # all nodes (0, ..., n-1) initially set to color blue
         # N: Number of nodes in the graph
         # P: Desired probability of an edge between any two nodes for connectivity
 
         # Create an initially empty graph
-        self.graph = nx.Graph()
+        self.graph = nx.Graph()             # this is the underlying Networkx graph object
         # Add nodes
         self.graph.add_nodes_from(range(n))
         # Start connecting nodes to form a connected graph
@@ -51,33 +55,40 @@ class Graph:
                     if np.random.rand() < p:
                         self.graph.add_edge(node, potential_target)
 
+        self.node_pos = nx.spring_layout(self.graph)
+
+        # TODO:
+        self.boundaries = ...
+        self.f = ... # function mapping boundary to score
+    
+    def find_boundaries(self):
+        pass
+
     def display(self):
         # Draw the graph using NetworkX and Matplotlib
-        colors = [self.node_colors[node]
-                  if node in self.node_colors else 'skyblue' for node in self.graph.nodes]
+        # colors = [self.node_colors[node]
+        #           if node in self.node_colors else 'skyblue' for node in self.graph.nodes]
 
-        nx.draw(self.graph, with_labels=True, node_size=500,
-                node_color=colors, font_size=10, font_color='black')
+        nx.draw(self.graph, pos=self.node_pos, with_labels=True, node_size=500,
+                node_color=self.node_colors, font_size=10, font_color='black')
         plt.title("Connected Random Graph")
         plt.show()
 
     def set_node_color(self, node, color):
         self.node_colors[node] = color
 
-
-class DefaultPlayer():
-    def __init__(self, min_or_max):
-        self.objective = min_or_max
-
-    def strategy(self, graph, curr_vertex) -> int:
-        # default strat is just choose a random neighbor
-        neighbors = list(graph.neighbors(curr_vertex))
-        if neighbors:
-            return random.choice(neighbors)
-        else:
-            return None
+    def neighbors(self, vertex):
+        return self.graph.neighbors(vertex)
 
 
 # main
-for _ in range(10):
+def main():
+    num_turns = 10
     game = Game()
+    for _ in range(num_turns):
+        end = game.turn()
+        game.display()
+        if end:
+           break 
+
+main()
