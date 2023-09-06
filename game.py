@@ -2,6 +2,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from Player import DefaultPlayer
+
 class Game:
     def __init__(self, graph_type='random'):
         self.graph = Graph()
@@ -11,6 +13,9 @@ class Game:
         
     def display(self):
         self.graph.display()
+
+    def next_step(self):
+        self.graph.next_step()
 
 
 class Graph:
@@ -33,19 +38,49 @@ class Graph:
                     if np.random.rand() < p:
                         self.graph.add_edge(node, potential_target)
 
+        self.color_list = ['blue'] * n
+
+        self.curr_node = np.random.randint(1, n+1)
+
+        # offset index = node number - 1 
+        self.color_list[self.curr_node - 1] = 'red'
+
+        self.min_player = DefaultPlayer()
+        self.max_player = DefaultPlayer()
+
+    def next_step(self):
+        neighbors = list(self.graph.neighbors(self.curr_node))
+
+        print("DEBUG:", self.curr_node, neighbors)
+
+        # get random neighbor
+        next_node_index = np.random.randint(0, len(neighbors))
+        next_node = list(self.graph.nodes)[next_node_index]
+
+        # update colors of current node
+        self.color_list[self.curr_node - 1] = 'blue'
+        self.color_list[next_node - 1] = 'red'
+
+        self.curr_node = next_node
+        
+        return
+
     def display(self):
         # Draw the graph using NetworkX and Matplotlib
-        nx.draw(self.graph, with_labels=True, node_size=500, node_color='skyblue', font_size=10, font_color='black')
+        nx.draw(self.graph, with_labels=True, node_size=500, node_color=self.color_list, font_size=10, font_color='black')
         plt.title("Connected Random Graph")
         plt.show()
 
-class DefaultPlayer():
-    def __init__(self, min_or_max):
-        self.objective = min_or_max
-
-    def strategy(self, graph, curr_vertex) -> int:
-        pass
 
 # main
-for _ in range(10):
-    game = Game()
+# for _ in range(10):
+#     game = Game()
+#     game.display()
+
+num_rounds = 10
+
+game = Game()
+game.display()
+for _ in range(num_rounds):
+    game.next_step()
+    game.display()
