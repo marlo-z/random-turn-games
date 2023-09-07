@@ -15,7 +15,7 @@ class DefaultPlayer():
 
 
 class WagerPlayer(DefaultPlayer):
-    def __init__(self, min_or_max, starting_money):
+    def __init__(self, min_or_max, starting_money=1):
         super().__init__(min_or_max)
         self.money = starting_money
 
