@@ -10,4 +10,5 @@ class DefaultPlayer():
         if neighbors:
             return random.choice(neighbors)
         else:
+            print("ERROR")
             return None
