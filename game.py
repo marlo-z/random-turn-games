@@ -2,9 +2,11 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 from Player import DefaultPlayer
 
+#
 
 class Game:
     def __init__(self, advantage = 0.5, graph_type='random'):
@@ -12,7 +14,8 @@ class Game:
         # TODO: actually well define min and max
         self.min_player = DefaultPlayer(True)
         self.max_player = DefaultPlayer(False)
-        self.curr_vertex = random.choice(list(self.graph.graph.nodes))  # random vertex
+        # self.curr_vertex = random.choice(list(self.graph.graph.nodes))  
+        self.curr_vertex = self.graph.find_central_node()
         self.graph.set_node_color(self.curr_vertex, 'red')              # curr_vertx = red, others = blue
 
         self.advantage = advantage                                      # advantage = probability that MAX player moves
@@ -21,24 +24,27 @@ class Game:
         self.graph.display()
 
     def turn(self):
-        self.graph.set_node_color(self.curr_vertex, 'blue')
+        if self.at_boundary():
+            self.graph.set_node_color(self.curr_vertex, 'green')
+        else: 
+            self.graph.set_node_color(self.curr_vertex, 'blue')
         
         min_or_max_player = np.random.choice([0,1], p = [1-self.advantage, self.advantage])
         chosen_player = [self.min_player, self.max_player][min_or_max_player]
         self.curr_vertex = chosen_player.strategy(self.graph, self.curr_vertex)
-
+        
         self.graph.set_node_color(self.curr_vertex, 'red')
 
         # return whether or not game has ended
         return False
 
     def at_boundary(self):
-        return self.graph.at_boundary()
+        return self.graph.at_boundary(self.curr_vertex)
 
 
 class Graph:
     # TODO: add attributes to each vertex --> representing value of boundary vertices
-    def __init__(self, n=10, p=0.1):
+    def __init__(self, n=30, p=0.1):
         
         # all nodes (0, ..., n-1) initially set to color blue
         # N: Number of nodes in the graph
@@ -59,22 +65,45 @@ class Graph:
                         self.graph.add_edge(node, potential_target)
 
         self.node_pos = nx.spring_layout(self.graph)                                    # returns a dict keyed by nodes
+        # print(self.node_pos)
 
-        # TODO:
         self.nodes = list(range(n))                                                     # this is the bare nodes
         self.node_colors = {node : 'blue' for node in range(n)}                         # a dict mapping {node : color}
-        # self.boundaries = ...                                                           # a dict mapping {node : bool}
+        self.boundaries = self.set_boundaries()                                         # a hash set containing all boundary nodes
         self.boundary_func = ... # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
     
-    def find_boundaries(self):
-        pass
+    def find_central_node(self):
+        dist = lambda pos : pos[0]**2 + pos[1]**2
+        min_dist = np.inf
+        closest_to_center = None
+        for node, pos in self.node_pos.items():
+            if dist(pos) < min_dist:
+                min_dist = dist(pos)
+                closest_to_center = node
+        return closest_to_center
+
+    def set_boundaries(self):
+        coords = np.array([self.node_pos[node] for node in self.nodes])
+        hull = ConvexHull(coords)
+        boundary_nodes = set()
+        for i, j in hull.simplices:
+            if i not in boundary_nodes:
+                boundary_nodes.add(i)
+                self.set_node_color(i, 'green')
+            if j not in boundary_nodes:
+                boundary_nodes.add(j)
+                self.set_node_color(j, 'green')
+        # print(coords)
+        # print(hull.simplices)
+        # print(boundary_nodes)
+        return boundary_nodes
 
     def display(self):
         # Draw the graph using NetworkX and Matplotlib
         # colors = [self.node_colors[node]
         #           if node in self.node_colors else 'skyblue' for node in self.graph.nodes]
         node_colors = [self.node_colors[node] for node in self.nodes]
-        nx.draw(self.graph, pos=self.node_pos, with_labels=True, node_size=500,
+        nx.draw(self.graph, pos=self.node_pos, with_labels=True, node_size=300,
                 node_color=node_colors, font_size=10, font_color='black')
         plt.title("Connected Random Graph")
         plt.show()
@@ -85,18 +114,17 @@ class Graph:
     def neighbors(self, vertex):
         return self.graph.neighbors(vertex)
 
-    def at_boundary(self):
-        return self.curr_vertex in self.boundary_func
+    def at_boundary(self, node):
+        return node in self.boundaries
 
 
 # main
 def main():
     num_turns = 10
     game = Game()
-    print(game.graph.node_pos)
     for _ in range(num_turns):
-        end = game.turn()
         game.display()
+        end = game.turn()
         if end:
            break 
 
