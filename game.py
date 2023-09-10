@@ -6,7 +6,6 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 from Player import DefaultPlayer
 
-#
 
 class Game:
     def __init__(self, advantage = 0.5, graph_type='random'):
