@@ -4,20 +4,28 @@ import matplotlib.pyplot as plt
 import random
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
-from Player import DefaultPlayer
+from Player import DefaultPlayer, WagerPlayer
 
 
 class Game:
-    def __init__(self, advantage = 0.5, graph_type='random'):
-        self.graph = Graph()                                            # upon initialization, every node will be set to color blue
+    def __init__(self, advantage=0.5, graph_type='random', wager=True):
+        # upon initialization, every node will be set to color blue
+        self.graph = Graph()
         # TODO: actually well define min and max
-        self.min_player = DefaultPlayer(True)
-        self.max_player = DefaultPlayer(False)
-        # self.curr_vertex = random.choice(list(self.graph.graph.nodes))  
+        self.wager = wager
+        if not wager:
+            self.min_player = DefaultPlayer(True)
+            self.max_player = DefaultPlayer(False)
+        else:
+            self.min_player = WagerPlayer(True)
+            self.max_player = WagerPlayer(False)
+        # self.curr_vertex = random.choice(list(self.graph.graph.nodes))
         self.curr_vertex = self.graph.find_central_node()
-        self.graph.set_node_color(self.curr_vertex, 'red')              # curr_vertx = red, others = blue
+        # curr_vertx = red, others = blue
+        self.graph.set_node_color(self.curr_vertex, 'red')
 
-        self.advantage = advantage                                      # advantage = probability that MAX player moves
+        # advantage = probability that MAX player moves
+        self.advantage = advantage
 
     def display(self):
         self.graph.display()
@@ -25,13 +33,20 @@ class Game:
     def turn(self):
         if self.at_boundary():
             self.graph.set_node_color(self.curr_vertex, 'green')
-        else: 
+            return True
+        else:
             self.graph.set_node_color(self.curr_vertex, 'blue')
-        
-        min_or_max_player = np.random.choice([0,1], p = [1-self.advantage, self.advantage])
+        if self.wager:
+            a = self.max_player.wager_strategy()
+            b = self.min_player.wager_strategy()
+            if a == None or b == None:
+                return True
+            self.advantage = a/(a+b)
+        min_or_max_player = np.random.choice(
+            [0, 1], p=[1-self.advantage, self.advantage])
         chosen_player = [self.min_player, self.max_player][min_or_max_player]
         self.curr_vertex = chosen_player.strategy(self.graph, self.curr_vertex)
-        
+
         self.graph.set_node_color(self.curr_vertex, 'red')
 
         # return whether or not game has ended
@@ -44,7 +59,7 @@ class Game:
 class Graph:
     # TODO: add attributes to each vertex --> representing value of boundary vertices
     def __init__(self, n=30, p=0.1):
-        
+
         # all nodes (0, ..., n-1) initially set to color blue
         # N: Number of nodes in the graph
         # P: Desired probability of an edge between any two nodes for connectivity
@@ -63,16 +78,22 @@ class Graph:
                     if np.random.rand() < p:
                         self.graph.add_edge(node, potential_target)
 
-        self.node_pos = nx.spring_layout(self.graph)                                    # returns a dict keyed by nodes
+        # returns a dict keyed by nodes
+        self.node_pos = nx.spring_layout(self.graph)
         # print(self.node_pos)
 
-        self.nodes = list(range(n))                                                     # this is the bare nodes
-        self.node_colors = {node : 'blue' for node in range(n)}                         # a dict mapping {node : color}
-        self.boundaries = self.set_boundaries()                                         # a hash set containing all boundary nodes
-        self.boundary_func = ... # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
-    
+        # this is the bare nodes
+        self.nodes = list(range(n))
+        # a dict mapping {node : color}
+        self.node_colors = {node: 'blue' for node in range(n)}
+        self.boundaries = self.set_boundaries()
+        self.boundary_func = {}
+        for bound in self.boundaries:
+            # a hash set containing all boundary nodes # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
+            self.boundary_func[bound] = random.randint(0, 10)
+
     def find_central_node(self):
-        dist = lambda pos : pos[0]**2 + pos[1]**2
+        def dist(pos): return pos[0]**2 + pos[1]**2
         min_dist = np.inf
         closest_to_center = None
         for node, pos in self.node_pos.items():
@@ -125,6 +146,7 @@ def main():
         game.display()
         end = game.turn()
         if end:
-           break 
+            return game.graph.boundary_func[game.curr_vertex]
 
-main()
+
+print(main())
