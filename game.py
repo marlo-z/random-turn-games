@@ -77,7 +77,8 @@ class Graph:
                 if potential_target != node and potential_target not in self.graph.neighbors(node):
                     if np.random.rand() < p:
                         self.graph.add_edge(node, potential_target)
-
+        # self.graph = nx.to_acyclic_graph(self.graph)
+        self.make_acyclic()
         # returns a dict keyed by nodes
         self.node_pos = nx.spring_layout(self.graph)
         # print(self.node_pos)
@@ -91,6 +92,21 @@ class Graph:
         for bound in self.boundaries:
             # a hash set containing all boundary nodes # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
             self.boundary_func[bound] = random.randint(0, 10)
+
+    def make_acyclic(self):
+        # Check if the graph contains cycles
+        if not nx.is_forest(self.graph):
+            # Your graph has cycles
+            # Proceed to remove cycles
+            while not nx.is_forest(self.graph):
+                # Find a cycle
+                cycle = nx.find_cycle(self.graph)
+
+                # Choose an edge from the cycle to remove (you can use different criteria)
+                edge_to_remove = cycle[0]
+
+                # Remove the chosen edge
+                self.graph.remove_edge(*edge_to_remove)
 
     def find_central_node(self):
         def dist(pos): return pos[0]**2 + pos[1]**2
