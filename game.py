@@ -77,8 +77,7 @@ class Graph:
                 if potential_target != node and potential_target not in self.graph.neighbors(node):
                     if np.random.rand() < p:
                         self.graph.add_edge(node, potential_target)
-        # self.graph = nx.to_acyclic_graph(self.graph)
-        self.make_acyclic()
+        # self.make_acyclic()
         # returns a dict keyed by nodes
         self.node_pos = nx.spring_layout(self.graph)
         # print(self.node_pos)
