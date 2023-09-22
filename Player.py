@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 
 class DefaultPlayer():
@@ -34,8 +35,6 @@ class WagerPlayer(DefaultPlayer):
 # a move on the graph and a wager for the turn
 # the corresponding value is the percent of the time a player would make such a move
 # initialized to 0
-
-
 def initialize_strategy(graph, curr_vertex, money):
     strat = {}
     for neighbor in graph.neighbors(curr_vertex):
@@ -44,8 +43,6 @@ def initialize_strategy(graph, curr_vertex, money):
     return strat
 
 # We initialize the regret for each move to be 0
-
-
 def initialize_regret(strat):
     regret = {}
     for move in strat.keys():
@@ -53,48 +50,23 @@ def initialize_regret(strat):
     return regret
 
 # Return true if the move being made takes you to a boundary
-
-
 def terminal_state(graph, state):
     return graph.at_boundary(state[0])
 
+# Return true if the node in the game tree is the coin flip, pls note that we're
+# going to have to mindful of the formatting of this
+def is_chance(state):
+    if state[0] == True:
+        return True
 
 def monte_carlo_cfr(game, state, player, t, max_strat, min_strat):
+    # if you're at a terminal node, return it's value
     if terminal_state(game.graph, state):
         return game.graph.boundary_func([state[0]])
-    # Initialize regrets and strategy for each player
-    cumulative_regrets = {}  # Dictionary to store regrets
-    cumulative_strategy = {}  # Dictionary to store strategies
-
-    for iteration in range(num_iterations):
-        # Perform a single MCCFR iteration
-        utility = traverse_game_tree(game, cumulative_strategy)
-
-        # Backpropagate utility and update cumulative regrets
-        update_regrets(game, cumulative_regrets, utility)
-
-    # Compute average strategy from cumulative strategy values
-    average_strategy = compute_average_strategy(cumulative_strategy)
-
-    return average_strategy
-
-
-def traverse_game_tree(game, cumulative_strategy):
-    # Perform a single traversal of the game tree
-    # Start from the root of the game tree
-    # Choose actions for both players using their strategies
-    # Simulate the game and return the utility (e.g., win or loss)
-    pass
-
-
-def update_regrets(game, cumulative_regrets, utility):
-    # Backpropagate utility and update cumulative regrets
-    # Calculate regrets for each player based on the utility
-    # Update cumulative regrets with these values
-    pass
-
-
-def compute_average_strategy(cumulative_strategy):
-    # Compute the average strategy from cumulative strategy values
-    # Normalize cumulative strategy values to get the average strategy
-    pass
+    # if you're at coin flip stage
+    if is_chance(state):
+        odds = state[1]/(state[1]+state[2])
+        min_or_max_player = np.random.choice([0, 1], p=[1-odds, odds])
+        chosen_strat = [min_strat, max_strat][min_or_max_player]
+        return
+    
