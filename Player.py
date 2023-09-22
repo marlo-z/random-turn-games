@@ -53,20 +53,19 @@ def initialize_regret(strat):
 def terminal_state(graph, state):
     return graph.at_boundary(state[0])
 
-# Return true if the node in the game tree is the coin flip, pls note that we're
-# going to have to mindful of the formatting of this
-def is_chance(state):
-    if state[0] == True:
-        return True
 
-def monte_carlo_cfr(game, state, player, t, max_strat, min_strat):
+def monte_carlo_cfr(game, state, player, t, max_strat, min_strat, chance = False, wager = (0, 0)):
+    # if you're at coin flip stage
+    if chance:
+        odds = wager[0]/(wager[0]+wager[1])
+        min_or_max_player = np.random.choice([0, 1], p=[1-odds, odds])
+        if min_or_max_player == 1:
+            return monte_carlo_cfr(game, state, player, initialize_strategy(game.graph, max_strat[0][0], 0), min_strat)
+        else:
+            return monte_carlo_cfr(game, state, player, max_strat, initialize_strategy(game.graph, min_strat[0][0], 0))
+
     # if you're at a terminal node, return it's value
     if terminal_state(game.graph, state):
         return game.graph.boundary_func([state[0]])
-    # if you're at coin flip stage
-    if is_chance(state):
-        odds = state[1]/(state[1]+state[2])
-        min_or_max_player = np.random.choice([0, 1], p=[1-odds, odds])
-        chosen_strat = [min_strat, max_strat][min_or_max_player]
-        return
+    
     
