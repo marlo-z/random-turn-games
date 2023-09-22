@@ -45,7 +45,7 @@ class Game:
         min_or_max_player = np.random.choice(
             [0, 1], p=[1-self.advantage, self.advantage])
         chosen_player = [self.min_player, self.max_player][min_or_max_player]
-        self.curr_vertex = chosen_player.strategy(self.graph, self.curr_vertex)
+        self.curr_vertex = chosen_player.strategy(self, self.curr_vertex)
 
         self.graph.set_node_color(self.curr_vertex, 'red')
 
@@ -90,7 +90,7 @@ class Graph:
         self.boundary_func = {}
         for bound in self.boundaries:
             # a hash set containing all boundary nodes # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
-            self.boundary_func[bound] = random.randint(0, 10)
+            self.boundary_func[bound] = random.randint(-10, 10)
 
     def make_acyclic(self):
         # Check if the graph contains cycles

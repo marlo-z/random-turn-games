@@ -5,7 +5,8 @@ class DefaultPlayer():
     def __init__(self, min_or_max):
         self.objective = min_or_max
 
-    def strategy(self, graph, curr_vertex) -> int:
+    def strategy(self, game, curr_vertex) -> int:
+        graph = game.graph
         # default strat is just choose a random neighbor
         neighbors = list(graph.neighbors(curr_vertex))
         if neighbors:
@@ -19,8 +20,8 @@ class WagerPlayer(DefaultPlayer):
         super().__init__(min_or_max)
         self.money = starting_money
 
-    def strategy(self, graph, curr_vertex) -> int:
-        return super().strategy(graph, curr_vertex)
+    def strategy(self, game, curr_vertex) -> int:
+        return super().strategy(game, curr_vertex)
 
     def wager_strategy(self):
         wager = random.uniform(0, 0.05)
@@ -29,11 +30,41 @@ class WagerPlayer(DefaultPlayer):
             return None
         return wager
 
+# Initialize strategy as a dictionary where strategy is defined by
+# a move on the graph and a wager for the turn
+# the corresponding value is the percent of the time a player would make such a move
+# initialized to 0
 
-def monte_carlo_cfr(game, num_iterations):
-    # Initialize cumulative regrets and strategy for both players
-    cumulative_regrets = {}  # Dictionary to store cumulative regrets
-    cumulative_strategy = {}  # Dictionary to store cumulative strategies
+
+def initialize_strategy(graph, curr_vertex, money):
+    strat = {}
+    for neighbor in graph.neighbors(curr_vertex):
+        for wager in range(money // 100):
+            strat[(neighbor, wager)] = 0
+    return strat
+
+# We initialize the regret for each move to be 0
+
+
+def initialize_regret(strat):
+    regret = {}
+    for move in strat.keys():
+        regret[move] = 0
+    return regret
+
+# Return true if the move being made takes you to a boundary
+
+
+def terminal_state(graph, state):
+    return graph.at_boundary(state[0])
+
+
+def monte_carlo_cfr(game, state, player, t, max_strat, min_strat):
+    if terminal_state(game.graph, state):
+        return game.graph.boundary_func([state[0]])
+    # Initialize regrets and strategy for each player
+    cumulative_regrets = {}  # Dictionary to store regrets
+    cumulative_strategy = {}  # Dictionary to store strategies
 
     for iteration in range(num_iterations):
         # Perform a single MCCFR iteration
