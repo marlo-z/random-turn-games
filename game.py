@@ -55,6 +55,21 @@ class Game:
     def at_boundary(self):
         return self.graph.at_boundary(self.curr_vertex)
 
+    def score(self, maxi):
+        if maxi:
+            player = self.max_player
+        else:
+            player = self.min_player
+        score = 0
+        if self.wager:
+            score -= player.money_lost()
+        if self.at_boundary():
+            if player == self.max_player:
+                score += self.graph.boundary_func_max[self.curr_vertex]
+            elif player == self.min_player:
+                score += self.graph.boundary_func_min[self.curr_vertex]
+        return score
+
 
 class Graph:
     # TODO: add attributes to each vertex --> representing value of boundary vertices
@@ -87,10 +102,12 @@ class Graph:
         # a dict mapping {node : color}
         self.node_colors = {node: 'blue' for node in range(n)}
         self.boundaries = self.set_boundaries()
-        self.boundary_func = {}
+        self.boundary_func_max = {}
+        self.boundary_func_min = {}
         for bound in self.boundaries:
             # a hash set containing all boundary nodes # function mapping boundary to score                               # a dict mapping {node : score} --> or could be added as an attribute of the node
-            self.boundary_func[bound] = random.randint(-10, 10)
+            self.boundary_func_max[bound] = random.uniform(2, 3)
+            self.boundary_func_min[bound] = random.uniform(0, 1)
 
     def make_acyclic(self):
         # Check if the graph contains cycles
@@ -161,7 +178,7 @@ def main():
         game.display()
         end = game.turn()
         if end:
-            return game.graph.boundary_func[game.curr_vertex]
+            return game.score(False), game.score(True)
 
 
 print(main())
