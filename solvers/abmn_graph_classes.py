@@ -222,8 +222,7 @@ class MatrixGraphSolver:
 
         for i in range(0, self.m_map.shape[0]):
             for j in range(0, self.m_map.shape[1]):
-                if self.m_map[i, j] == np.inf or (i, j) in self.bounds \
-                    or self.m[t - 1, i, j] == 0 or self.n[t - 1, i, j] == 0:
+                if self.m_map[i, j] == np.inf or (i, j) in self.bounds:
                     continue
                 
                 v_plus, v_minus = self.find_next_move(t, i, j)
