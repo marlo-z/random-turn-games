@@ -1,14 +1,17 @@
+from collections.abc import Callable
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-class LineGraph:
+class LineGraphSolver:
         
     def __init__(
             self, 
-            left=6, 
-            right=6, 
-            time_steps=100, 
-            maxi_reward=100000, 
-            mina_reward=99994
+            left: int = 6, 
+            right: int = 6, 
+            time_steps: int = 100, 
+            maxi_reward: float = 100000, 
+            mina_reward: float = 99994
         ):
         self.left_end = left     # left endpoint: -k
         self.right_end = right      # right endpoint: l
@@ -17,7 +20,7 @@ class LineGraph:
 
         # Note: position index i will be shifted
         # before: left end = -k, middle = 0, right end = l
-        # now: left end = 0, middle = k, right end = k + l (= L)
+        # now: left end = 0, middle = k, Pright end = k + l (= L)
 
         self.n_lambda = mina_reward
         self.m_lambda = maxi_reward
@@ -43,7 +46,7 @@ class LineGraph:
         self.m[0, 1:-1] = self.m_lambda * initial_ratio
         self.n[0, 1:-1] = self.n_lambda * (1 - initial_ratio)
 
-    def iterateABMN(self, t, debug=False):
+    def iterateABMN(self, t: int, debug=False) -> None:
         for i in range(1, self.length - 1):
             delta_m = self.m[t-1][i+1] - self.m[t-1][i-1]
             delta_n = self.n[t-1][i-1] - self.n[t-1][i+1]
@@ -67,7 +70,7 @@ class LineGraph:
             print("n = {}".format(self.n[t]))
             print("delta_m = {}, delta_n = {}".format(delta_m, delta_n))
 
-    def solve(self, debug=False):
+    def solve(self, debug=False) -> None:
         for t in range(1, self.time_steps):
             if t % (self.time_steps // 10) == 0:
                 self.iterateABMN(t, debug)
@@ -75,19 +78,19 @@ class LineGraph:
                 self.iterateABMN(t)
 
 
-class OriginCrossGraph:
+class OriginCrossGraphSolver:
 
     def __init__(
             self,
-            left=6,
-            right=6,
-            top=6,
-            bottom=6,
-            time_steps=100,
-            horizontal_maxi_reward=100000,
-            horizontal_mina_reward=99994,
-            vertical_maxi_reward=100000,
-            vertical_mina_reward=99994
+            left: int = 6,
+            right: int = 6,
+            top: int = 6,
+            bottom: int = 6,
+            time_steps: int = 100,
+            horizontal_maxi_reward: float = 100000,
+            horizontal_mina_reward: float = 99994,
+            vertical_maxi_reward: float = 100000,
+            vertical_mina_reward: float = 99994
     ):
         self.right_end = left + right
         self.bottom_end = top + bottom
@@ -120,7 +123,8 @@ class OriginCrossGraph:
         self.n[0, self.origin[0], 1:-1] = self.horizontal_n_lambda * (1 - horizontal_initial_ratio)
         self.n[0, 1:-1, self.origin[1]] = self.vertical_n_lambda * (1 - vertical_initial_ratio)
 
-    def find_next_move(self, t, i, j):
+    def find_next_move(self, t: int, i: int, j: int) \
+        -> tuple[tuple[int, int], tuple[int, int]]:
         m_max = {}
         m_max[(i-1, j)] = self.m[t-1, i-1, j]
         m_max[(i+1, j)] = self.m[t-1, i+1, j]
@@ -132,12 +136,12 @@ class OriginCrossGraph:
         n_max[(i+1, j)] = self.n[t-1, i+1, j]
         n_max[(i, j-1)] = self.n[t-1, i, j-1]
         n_max[(i, j+1)] = self.n[t-1, i, j+1]
-        v_plus = max(m_max, key=m_max.get)
-        v_minus = max(n_max, key=n_max.get)
+        v_plus = max(m_max.keys(), key=m_max.get)
+        v_minus = max(n_max.keys(), key=n_max.get)
 
         return v_plus, v_minus
     
-    def iterateABMN(self, t, debug=False):
+    def iterateABMN(self, t: int, debug: bool = False) -> None:
         if debug:
             print(f"-------------- step {t} --------------")
 
@@ -168,7 +172,93 @@ class OriginCrossGraph:
             print("m = {}".format(self.m[t]))
             print("n = {}".format(self.n[t]))
     
-    def solve(self, debug=False):
+    def solve(self, debug: bool = False) -> None:
+        for t in range(1, self.time_steps):
+            if t % max((self.time_steps // 10), 1) == 0:
+                self.iterateABMN(t, debug)
+            else:
+                self.iterateABMN(t)
+
+
+class MatrixGraphSolver:
+
+    def __init__(
+            self,
+            m_map: np.ndarray[tuple[int, int], float],
+            n_map: np.ndarray[tuple[int, int], float],
+            boundary_coords: list[tuple[int, int]],
+            time_steps: int = 100,
+    ):
+        self.time_steps = time_steps
+        self.bounds = boundary_coords
+        self.a = np.zeros((time_steps, *m_map.shape))
+        self.b = self.a.copy()
+        self.m_map = m_map
+        self.n_map = n_map
+        self.m = np.tile(m_map, (time_steps, 1, 1))
+        self.n = np.tile(n_map, (time_steps, 1, 1))
+
+    def find_next_move(self, t: int, i: int, j: int) \
+        -> tuple[tuple[int, int], tuple[int, int]]:
+        m_max = {}
+        n_max = {}
+
+        for row, col in [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]:
+            if row < 0 or row >= self.m_map.shape[0] \
+                or col < 0 or col >= self.m_map.shape[1] \
+                or self.m_map[row, col] == np.inf:
+                continue
+            m_max[(row, col)] = self.m[t-1, row, col]
+            n_max[(row, col)] = self.n[t-1, row, col]
+        
+        v_plus = max(m_max.keys(), key=m_max.get)
+        v_minus = max(n_max.keys(), key=n_max.get)
+
+        return v_plus, v_minus
+    
+    def iterateABMN(self, t: int, debug: bool = False) -> None:
+        if debug:
+            print(f"-------------- step {t} --------------")
+
+        for i in range(0, self.m_map.shape[0]):
+            for j in range(0, self.m_map.shape[1]):
+                if self.m_map[i, j] == np.inf or (i, j) in self.bounds \
+                    or self.m[t - 1, i, j] == 0 or self.n[t - 1, i, j] == 0:
+                    continue
+                
+                v_plus, v_minus = self.find_next_move(t, i, j)
+
+                delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
+                delta_n = self.n[t-1, *v_minus] - self.n[t-1, *v_plus]
+
+                self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
+                    / (delta_m / delta_n + 1)
+                self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
+
+                maxi_wager_ratio = self.a[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                mina_wager_ratio = self.b[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
+                    + mina_wager_ratio * self.m[t-1, *v_minus] - self.a[t, i, j]
+                self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
+                    + mina_wager_ratio * self.n[t-1, *v_minus] - self.b[t, i, j]
+                
+                if debug:
+                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"\
+                          .format(i, j, v_plus, v_minus, delta_m, delta_n))
+                    
+        if debug:
+            print("a = {}".format(self.a[t]))
+            print("b = {}".format(self.b[t]))
+            print("m = {}".format(self.m[t]))
+            print("n = {}".format(self.n[t]))
+    
+    def solve(self, debug: bool = False) -> None:
+        if debug:
+            print("-------------- initial values --------------")
+            print("bounds = {}".format(self.bounds))
+            print("m = {}".format(self.m[0]))
+            print("n = {}".format(self.n[0]))
+        
         for t in range(1, self.time_steps):
             if t % max((self.time_steps // 10), 1) == 0:
                 self.iterateABMN(t, debug)
