@@ -1,0 +1,268 @@
+\documentclass{article}
+\usepackage{amsfonts, amsmath, amssymb, amsthm} % Math notations imported
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage[margin=1in]{geometry}
+\graphicspath{{./images/}} % Path to images
+
+% \begin{figure}[htb!]
+%      \centering
+%      \includegraphics[scale=0.5]{coloring.png}
+%      \caption{Coloring of the graph.}
+% \end{figure}
+
+% \begin{figure}[htb]
+%     \qquad
+%     \begin{minipage}{.4\textwidth}
+%         \centering
+%         \includegraphics[scale=0.35]{prims.png}
+%         \caption{}
+%     \end{minipage}    
+%     \qquad
+%     \begin{minipage}{.4\textwidth}
+%         \centering
+%         \includegraphics[scale=0.35]{kruskal.png}
+%         \caption{}
+%     \end{minipage}        
+% \end{figure} 
+
+\newtheorem{thm}{Theorem}
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{cor}[thm]{Corollary}
+
+% title information
+\title{Trail Equations}
+\author{}
+\date{}
+
+\setstretch{1.15}
+% main content
+\begin{document} 
+
+% placing title information; comment out if using fancyhdr
+\maketitle 
+
+\section{Foundational Functions}
+Any unspecified $w, s, c, d$ are taken to be functions of $x$, e.g. $w\implies w(x), s\implies s(x)$.
+
+\subsection{Basis Functions}
+$$w(x)=\sqrt{8x+1},\qquad s=\frac{(w-1)^2}{4(w+7)},\qquad c=\frac{(w+3)^2}{16}, 
+\qquad d=\frac{(w+3)^2}{8(w+1)}.$$
+
+\subsection{Indexed Basis Functions}
+$$s_0=x, \qquad s_{-1}=\frac{1}{s(1/x)}, \qquad s_j=s(s_{j-1}),\qquad s_{-j}=s_{-1}(s_{-j+1}),\qquad 
+c_{j}=c(s_j), \qquad d_j=d(s{_j}).$$
+
+\subsection{Basis Function Derivatives}
+$$w'(x)=\frac{4}{\sqrt{8x+1}}, \qquad s'=\frac{1}{w}-\frac{64}{w(w+7)^2},$$
+$$s_{-1}'=\frac{s'(1/x)}{x^2\cdot s^2(1/x)} = \frac{s'(1/x)\cdot s_{-1}^2}{x^2}, \qquad
+c'=\frac{w'(w+3)}{8},\qquad d'=\frac{1}{2w}-\frac{2}{w(w+1)^2}.$$
+
+\subsection{Indexed Basis Function Derivatives}
+$$s_0'=1,\qquad s_j'=\prod_{k=0}^{j-1}s'(s_k), \qquad s_{-j}'=\prod_{k=-j+1}^{0}s_{-1}'(s_k),
+\qquad c_j'=c'(s_j)\cdot s_{j}', \qquad d_j'=d'(s_j)\cdot s_j'.$$
+
+
+
+\newpage
+\subsection{Composite functions}
+$$S_k = 1+\sum\limits_{j=0}^{k-1}\prod\limits_{n=0}^{j}(d_n-1), 
+\qquad T_\ell = \sum\limits_{j=1}^{\ell-1}\prod\limits_{n=1}^{j}(d_{-n}-1)^{-1},$$
+$$P_k = 1+\sum\limits_{j=0}^{k-1}\prod\limits_{n=0}^j(c_n-1),
+\qquad Q_\ell = \sum_{j=1}^{\ell-1}\limits\prod_{n=1}^{j}\limits(c_{-n}-1)^{-1}.$$
+$$A_i = \prod_{n=0}^{i}\limits(d_n-1), \qquad B_i = \prod_{n=0}^{i}\limits(c_n-1), \qquad
+C_i = \prod_{n=1}^{i}\limits(d_{-n}-1)^{-1}, \qquad D_i = \prod_{n=1}^{i}\limits(c_{-n}-1)^{-1}.$$
+$$E_i = \sum_{j=0}^{i}\limits\frac{d_j'}{d_j-1}, \qquad F_i = \sum_{j=0}^{i}\limits\frac{c_j'}{c_j-1}, \qquad 
+G_i = \sum_{j=1}^{i}\limits\frac{-d_{-j}'}{d_{-j}-1}, \qquad H_i = \sum_{j=1}^{i}\limits\frac{-c_{-j}'}{c_{-j}-1}.$$
+
+
+
+\newpage
+\section{Properties Of Basis Functions}
+\begin{enumerate}[label=(\arabic*)]
+    \item $s:(0,\infty)\to(0,\infty)$ are increasing.
+    \item $s:(0,3)\to(0,\frac{1}{3})$ are increasing.
+    \item $s_{-1}:(\frac{1}{3},\infty)\to(3,\infty)$ are increasing.
+    \item $w:(0,3)\to(1,5)$ are increasing.
+    \item $w,c,d:(0,\infty)\to(1,\infty)$ are increasing.
+    \item $s(x) = \frac{x^2}{2}+O(x^3)$ as $x\to 0$.
+    \item For $x\in(0,\infty), s(x)=\frac{\beta(x)^2}{\beta(x)+2}$ for $\beta(x)=\frac{w-1}{4}$.
+    \item For $x\in(0,\infty), \beta(x)\le x$. 
+    \item For $x\in(0,\infty), s(x)< x$. 
+\end{enumerate}
+
+\subsection{$x\in[1/3, 3]$ and $j\in[-5, 5]$}
+\begin{enumerate}[label=(\arabic*)]
+    \item $s_j:(0,\infty)\to(0,\infty)$ are increasing.
+    \item $c_j,d_j:(0,\infty)\to(1,\infty)$ are increasing.
+    \item $S_k, P_k,:(0,\infty)\to(1,\infty)$ are increasing.
+    \item $T_\ell, Q_\ell:(0,\infty)\to(0,\infty)$ are decreasing.
+    \item $A_i, B_i:(0,\infty)\to(0,\infty)$ are increasing.
+    \item $C_i, D_i:(0,\infty)\to(0,\infty)$ are decreasing.
+    \item $E_i, F_i:(0,\infty)\to(0,\infty)$
+    \item $G_i, H_i:(0,\infty)\to(-\infty,0)$
+    \item $w':(0,\infty)\to(0,4)$ is decreasing.
+    \item $c':(0,\infty)\to(\frac{1}{2},2)$ is decreasing.
+    \item $s':(0,\infty)\to(0,0.124)$ is concave down, $\max s' \le 0.124$ where $w\in[3.2, 3.3]$.
+    \item $d':(0,\infty)\to(0,151)$ is concave down, $\max d' \le 0.151$ where $w\in[2, 2.1]$.
+    \item $s'_j$ is increasing for $j\neq 1$ and $s'_1 = s'$ is concave down.
+    \item $c'_j$ is increasing for $j\neq0, 1$, $c'_0=c'$ is decreasing and $c'_1$ is concave down.
+    \item $d'_j$ is increasing for $j\neq-1, 0$, $d_{-1}'$ is decreasing and $d'_0 = d'$ is concave down.
+    \item $S_k, P_k, T_\ell, Q_\ell$ are increasing.
+\end{enumerate}
+
+\subsection{Consequences On $\mathcal{M}'_{2,1}$}
+Numerical work suggests a decresing function.
+
+
+
+\newpage
+\section{Finite Mina Margin Map}
+\subsection{$\mathcal{M}_{\ell,k}$}
+$$\mathcal{M}_{\ell,k}(x)=\frac{x(S_k+T_\ell)}{P_k+Q_\ell}=\frac{x\left[1+\sum\limits_{j=0}^{k-1}\prod\limits_{n=0}^{j}(d_n-1)+
+\sum\limits_{j=1}^{\ell-1}\prod\limits_{n=1}^{j}(d_{-n}-1)^{-1}\right]}{1+
+\sum\limits_{j=0}^{k-1}\prod\limits_{n=0}^j(c_n-1)+
+\sum_{j=1}^{\ell-1}\limits\prod_{n=1}^{j}\limits(c_{-n}-1)^{-1}}.$$
+
+\subsection{$\mathcal{M}_{\ell,k}$ Derivative}
+\begin{align*}
+    \mathcal{M}_{\ell,k}'(x)
+    &=\left\{\frac{1}{x}+\frac{
+        \sum_{i=0}^{k-1}\limits\left(E_i\right)\left(A_i\right)
+        +\sum_{i=1}^{\ell-1}\limits\left(G_i\right)\left(C_i\right)}{S_k + T_\ell} 
+    - \frac{
+        \sum_{i=0}^{k-1}\limits\left(F_i\right)\left(B_i\right)
+        +\sum_{i=1}^{\ell-1}\limits\left(H_i\right)\left(D_i\right)}{P_k+Q_\ell}\right\} 
+    \times \mathcal{M}_{\ell,k} (x)\\ \\
+    &=\left\{\frac{1}{x}+
+    \frac{\sum_{i=0}^{k-1}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{d_j'}{d_j-1}\right)
+    \left(\prod_{n=0}^{i}\limits(d_n-1)\right)\right]
+    +\sum_{i=1}^{\ell-1}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-d_{-j}'}{d_{-j}-1}\right)
+    \left(\prod_{n=1}^{i}\limits(d_{-n}-1)^{-1}\right)\right]}{1+\sum\limits_{j=0}^{k-1}
+    \prod\limits_{n=0}^{j}(d_n-1)+
+    \sum\limits_{j=1}^{\ell-1}\prod\limits_{n=1}^{j}(d_{-n}-1)^{-1}}\right. \\
+    &\quad \left. - \frac{\sum_{i=0}^{k-1}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{c_j'}{c_j-1}\right)
+    \left(\prod_{n=0}^{i}\limits(c_n-1)\right)\right]
+    +\sum_{i=1}^{\ell-1}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-c_{-j}'}{c_{-j}-1}\right)
+    \left(\prod_{n=1}^{i}\limits(c_{-n}-1)^{-1}\right)\right]}{1+
+    \sum\limits_{j=0}^{k-1}\prod\limits_{n=0}^j(c_n-1)+
+    \sum_{j=1}^{\ell-1}\limits\prod_{n=1}^{j}\limits(c_{-n}-1)^{-1}}\right\} \times 
+    \mathcal{M}_{\ell,k} (x).
+\end{align*}
+
+
+
+\newpage
+\subsection{$\mathcal{M}_{2,1}$}
+\begin{align*}
+    \mathcal{M}_{2,1}(x)&=\frac{x\left[1+\sum\limits_{j=0}^{0}\prod\limits_{k=0}^{j}(d_k-1)+
+    \sum\limits_{j=1}^{1}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}\right]}{1+
+    \sum\limits_{j=0}^{0}\prod\limits_{k=0}^j(c_k-1)+
+    \sum_{j=1}^1\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}}\\
+    &=\frac{x\left(1+(d_0-1)+(d_{-1}-1)^{-1}\right)}{1+(c_0-1)+(c_{-1}-1)^{-1}}
+    =\frac{x\left(d+(d_{-1}-1)^{-1}\right)}{c+(c_{-1}-1)^{-1}}.
+\end{align*}
+
+\subsection{$\mathcal{M}_{2,1}$ Derivative}
+\begin{align*}
+    \mathcal{M}_{2,1}'(x)&
+    =\left\{\frac{1}{x}+
+    \frac{\sum_{i=0}^{0}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{d_j'}{d_j-1}\right)
+    \left(\prod_{k=0}^{i}\limits(d_k-1)\right)\right]
+    +\sum_{i=1}^{1}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-d_{-j}'}{d_{-j}-1}\right)
+    \left(\prod_{k=1}^{i}\limits(d_{-k}-1)^{-1}\right)\right]}{1+\sum\limits_{j=0}^{0}
+    \prod\limits_{k=0}^{j}(d_k-1)+
+    \sum\limits_{j=1}^{1}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}}\right. \\
+    &\quad \left. - \frac{\sum_{i=0}^{0}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{c_j'}{c_j-1}\right)
+    \left(\prod_{k=0}^{i}\limits(c_k-1)\right)\right]
+    +\sum_{i=1}^{1}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-c_{-j}'}{c_{-j}-1}\right)
+    \left(\prod_{k=1}^{i}\limits(c_{-k}-1)^{-1}\right)\right]}{1+
+    \sum\limits_{j=0}^{0}\prod\limits_{k=0}^j(c_k-1)+
+    \sum_{j=1}^1\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}}\right\} \times \mathcal{M}_{2,1}(x) \\
+    \\
+    &=\left\{\frac{1}{x}+
+    \frac{\left(\frac{d_0'}{d_0-1}\right)
+    \left(d_0-1\right)
+    +\left(\frac{-d_{-1}'}{d_{-1}-1}\right)
+    (d_{-1}-1)^{-1}}{1+
+    (d_0-1)+
+    (d_{-1}-1)^{-1}}- \frac{\left(\frac{c_0'}{c_0-1}\right)
+    (c_0-1)
+    +\left(\frac{-c_{-1}'}{c_{-1}-1}\right)
+    (c_{-1}-1)^{-1}}{1+
+    (c_0-1)+
+    (c_{-1}-1)^{-1}}\right\} \\
+    \\
+    &\qquad\qquad\qquad \times \frac{x\left[1+(d_0-1)+
+    (d_{-1}-1)^{-1}\right]}{1+
+    (c_0-1)+
+    (c_{-1}-1)^{-1}}.
+\end{align*}
+
+
+
+\newpage
+\subsection{$\mathcal{M}_{5,4}$}
+$$\mathcal{M}_{5,4}(x)=\frac{x\left[1+\sum\limits_{j=0}^{3}\prod\limits_{k=0}^{j}(d_k-1)+
+\sum\limits_{j=1}^{4}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}\right]}{1+
+\sum\limits_{j=0}^{3}\prod\limits_{k=0}^j(c_k-1)+
+\sum_{j=1}^4\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}}.$$
+
+\subsection{$\mathcal{M}_{5,4}$ Derivative}
+\begin{align*}
+    \mathcal{M}_{5,4}'(x)
+    &=\left\{\frac{1}{x}+\frac{
+        \sum_{i=0}^{3}\limits\left(E_i\right)\left(A_i\right)
+        +\sum_{i=1}^{4}\limits\left(G_i\right)\left(C_i\right)}{S_3 + T_4} 
+    - \frac{
+        \sum_{i=0}^{3}\limits\left(F_i\right)\left(B_i\right)
+        +\sum_{i=1}^{4}\limits\left(H_i\right)\left(D_i\right)}{P_3+Q_4}\right\} 
+    \times \mathcal{M}_{5,4} (x)\\ \\
+    &=\left\{\frac{1}{x}+
+    \frac{\sum_{i=0}^{3}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{d_j'}{d_j-1}\right)
+    \left(\prod_{k=0}^{i}\limits(d_k-1)\right)\right]
+    +\sum_{i=1}^{4}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-d_{-j}'}{d_{-j}-1}\right)
+    \left(\prod_{k=1}^{i}\limits(d_{-k}-1)^{-1}\right)\right]}{1+\sum\limits_{j=0}^{3}
+    \prod\limits_{k=0}^{j}(d_k-1)+
+    \sum\limits_{j=1}^{4}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}}\right. \\
+    &\quad \left. - \frac{\sum_{i=0}^{3}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{c_j'}{c_j-1}\right)
+    \left(\prod_{k=0}^{i}\limits(c_k-1)\right)\right]
+    +\sum_{i=1}^{4}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-c_{-j}'}{c_{-j}-1}\right)
+    \left(\prod_{k=1}^{i}\limits(c_{-k}-1)^{-1}\right)\right]}{1+
+    \sum\limits_{j=0}^{3}\prod\limits_{k=0}^j(c_k-1)+
+    \sum_{j=1}^4\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}}\right\} \times \mathcal{M}_{5,4}(x)
+\end{align*}
+
+
+
+
+% \subsection{Another form of $\mathcal{M}_{5,4}$ Derivative (Have Typo)}
+% \begin{align*}
+%     \mathcal{M}_{5,4}'(x)&=\frac{1+\sum\limits_{j=0}^{3}\prod\limits_{k=0}^{j}(d_k-1)+
+%     \sum\limits_{j=1}^{4}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}}{1+
+%     \sum\limits_{j=0}^{3}\prod\limits_{k=0}^j(c_k-1)+
+%     \sum_{j=1}^4\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}} \\ 
+%     \\
+%     &\quad +\frac{x\cdot\left\{\sum_{i=0}^{3}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{d_j'}{d_j-1}\right)
+%     \left(\prod_{k=0}^{i}\limits(d_k-1)\right)\right]
+%     +\sum_{i=1}^{4}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-d_{-j}'}{d_{-j}-1}\right)
+%     \left(\prod_{k=1}^{i}\limits(d_{-k}-1)^{-1}\right)\right]\right\}\cdot D_{4,3}}{\left[1+
+%     \sum\limits_{j=0}^{3}\prod\limits_{k=0}^j(c_k-1)+
+%     \sum_{j=1}^4\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}\right]\left[
+%     1+\sum\limits_{j=0}^{3}\prod\limits_{k=0}^{j}(d_k-1)+
+%     \sum\limits_{j=1}^{4}\prod\limits_{k=1}^{j}(d_{-k}-1)^{-1}
+%     \right]} \\ 
+%     \\
+%     &\quad - \frac{x\cdot\left\{\sum_{i=0}^{3}\limits\left[\left(\sum_{j=0}^{i}\limits\frac{c_j'}{c_j-1}\right)
+%     \left(\prod_{k=0}^{i}\limits(c_k-1)\right)\right]
+%     +\sum_{i=1}^{4}\limits\left[\left(\sum_{j=1}^{i}\limits\frac{-c_{-j}'}{c_{-j}-1}\right)
+%     \left(\prod_{k=1}^{i}\limits(c_{-k}-1)^{-1}\right)\right]\right\}\cdot D_{4,3}}{\left[1+
+%     \sum\limits_{j=0}^{3}\prod\limits_{k=0}^j(c_k-1)+
+%     \sum_{j=1}^4\limits\prod_{k=1}^{j}\limits(c_{-k}-1)^{-1}\right]^2}.
+% \end{align*}
+
+
+
+\end{document}
