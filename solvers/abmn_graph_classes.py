@@ -185,7 +185,7 @@ class MatrixGraphSolver:
     def __init__(
             self,
             m_map: np.ndarray[tuple[int, int], float],
-            n_map: np.ndarray[tuple[int, int], float],
+            n_map: np.ndarray[tuple[int, int], float],     # [(left corner), (right corner)]
             boundary_coords: list[tuple[int, int]],
             time_steps: int = 100,
     ):
@@ -263,3 +263,119 @@ class MatrixGraphSolver:
                 self.iterateABMN(t, debug)
             else:
                 self.iterateABMN(t)
+
+
+class GridSolver:
+
+    def __init__(
+            self,
+            boundary_coords: tuple[int, int] = (3,3),        # (top right corner)
+            time_steps: int = 100
+    ):
+        self.time_steps = time_steps
+        self.bounds = [(0,0), boundary_coords]
+        self.x_len = boundary_coords[0]
+        self.y_len = boundary_coords[1]
+        self.a = np.zeros((time_steps, self.x_len, self.y_len))
+        self.b = np.zeros((time_steps, self.x_len, self.y_len))
+        self.m = np.zeros((time_steps, self.x_len, self.y_len))
+        self.n = np.zeros((time_steps, self.x_len, self.y_len))
+        self.m_map = np.ones((self.x_len, self.y_len)) * (-np.inf)
+        self.n_map = np.ones((self.x_len, self.y_len)) * (-np.inf)
+
+        # boundary values
+        for t in range(1, time_steps):
+            for x in range(self.x_len):
+                for y in range(self.y_len):
+                    if x == 0 or y == 0 or x == (self.x_len - 1) or y == (self.y_len - 1):
+                        if x == 0 and y == 0:
+                            self.m[t][x][y] = 0
+                            self.n[t][x][y] = 6
+                        else:
+                            self.m[t][x][y] = x+y
+                            self.n[t][x][y] = 1/(x+y)
+                    
+
+        # initial values
+        self.a[0] = np.random.rand(self.x_len, self.y_len)
+        self.b[0] = np.random.rand(self.x_len, self.y_len)
+
+
+    def find_next_move(self, t: int, i: int, j: int) \
+        -> tuple[tuple[int, int], tuple[int, int]]:
+        m_max = {}
+        n_max = {}
+
+        for row, col in [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]:
+            if row < 0 or row >= self.m_map.shape[0] \
+                or col < 0 or col >= self.m_map.shape[1] \
+                or self.m_map[row, col] == np.inf:
+                continue
+            m_max[(row, col)] = self.m[t-1, row, col]
+            n_max[(row, col)] = self.n[t-1, row, col]
+        
+        v_plus = max(m_max.keys(), key=m_max.get)
+        v_minus = max(n_max.keys(), key=n_max.get)
+
+        return v_plus, v_minus
+    
+    def iterateABMN(self, t: int, debug: bool = False) -> None:
+        if debug:
+            print(f"-------------- step {t} --------------")
+
+        for i in range(0, self.m_map.shape[0]):
+            for j in range(0, self.m_map.shape[1]):
+                if self.m_map[i, j] == np.inf or (i, j) in self.bounds:
+                    continue
+                
+                v_plus, v_minus = self.find_next_move(t, i, j)
+
+                delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
+                delta_n = self.n[t-1, *v_minus] - self.n[t-1, *v_plus]
+
+                if debug:
+                    print("M", self.m[t])
+                    print("N", self.n[t])
+                    print("delta m", delta_m)
+                    print("delta_n", delta_n)
+
+                self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
+                    / (delta_m / delta_n + 1)
+                self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
+
+                maxi_wager_ratio = self.a[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                mina_wager_ratio = self.b[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
+                    + mina_wager_ratio * self.m[t-1, *v_minus] - self.a[t, i, j]
+                self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
+                    + mina_wager_ratio * self.n[t-1, *v_minus] - self.b[t, i, j]
+                
+                if debug:
+                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"\
+                          .format(i, j, v_plus, v_minus, delta_m, delta_n))
+                    
+        if debug:
+            print("a = {}".format(self.a[t]))
+            print("b = {}".format(self.b[t]))
+            print("m = {}".format(self.m[t]))
+            print("n = {}".format(self.n[t]))
+    
+    def solve(self, debug: bool = False) -> None:
+        if debug:
+            print("-------------- initial values --------------")
+            print("bounds = {}".format(self.bounds))
+            print("a = {}".format(self.a[0]))
+            print("b = {}".format(self.b[0]))
+            # print("m = {}".format(self.m[0]))
+            # print("n = {}".format(self.n[0]))
+        
+        for t in range(1, self.time_steps):
+            if t % max((self.time_steps // 10), 1) == 0:
+                self.iterateABMN(t, debug)
+            else:
+                self.iterateABMN(t)
+
+
+
+# Main
+GridSolver(boundary_coords=(4,4), time_steps=5).solve(debug=True)
