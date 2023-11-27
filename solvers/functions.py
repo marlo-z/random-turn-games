@@ -103,10 +103,20 @@ def arctan_interp_full(map):
     return map_copy
 
 
-mat = np.full((2, 5), np.inf)
-n_map = mat.copy()
-n_map[1, :] = -np.inf
-n_map[0, 0] = 0
-n_map[0, -1] = 1
-bounds = get_bounds(n_map)
-print(arctan_interp(n_map, find_path_between_bounds(n_map)))
+def interp_m_matrix(map):
+    map_copy = map.copy()
+    rows, cols = map_copy.shape
+    for x in range(rows):
+        for y in range(cols):
+            map_copy[(x, y)] = x+y
+    return map_copy
+
+
+def interp_n_matrix(map):
+    map_copy = map.copy()
+    rows, cols = map_copy.shape
+    for x in range(rows):
+        for y in range(cols):
+            map_copy[(x, y)] = rows+cols-x-y-2
+    return map_copy
+

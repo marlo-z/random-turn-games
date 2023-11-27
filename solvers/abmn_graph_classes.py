@@ -3,16 +3,17 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
 class LineGraphSolver:
-        
+
     def __init__(
-            self, 
-            left: int = 6, 
-            right: int = 6, 
-            time_steps: int = 100, 
-            maxi_reward: float = 100000, 
-            mina_reward: float = 99994
-        ):
+        self,
+        left: int = 6,
+        right: int = 6,
+        time_steps: int = 100,
+        maxi_reward: float = 100000,
+        mina_reward: float = 99994
+    ):
         self.left_end = left     # left endpoint: -k
         self.right_end = right      # right endpoint: l
         self.length = self.left + self.right + 1    # total length: k+l
@@ -25,9 +26,8 @@ class LineGraphSolver:
         self.n_lambda = mina_reward
         self.m_lambda = maxi_reward
 
-
-        # initialize the m,n values at time t=0, 
-        # then iterate starting from t=1, use m(t-1), n(t-1) to compute a(t) and b(t) 
+        # initialize the m,n values at time t=0,
+        # then iterate starting from t=1, use m(t-1), n(t-1) to compute a(t) and b(t)
         # then use a(t) and b(t) to compute m(t) and n(t)
 
         # Each matrix: vertical axis (rows): time step, horizontal axis (colunmns): position
@@ -61,7 +61,7 @@ class LineGraphSolver:
                 + mina_wager_ratio * self.m[t-1][i-1] - self.a[t][i]
             self.n[t][i] = maxi_wager_ratio * self.n[t-1][i+1] \
                 + mina_wager_ratio * self.n[t-1][i-1] - self.b[t][i]
-        
+
         if debug:
             print(f"-------------- step {t} --------------")
             print("a = {}".format(self.a[t]))
@@ -100,7 +100,7 @@ class OriginCrossGraphSolver:
         self.time_steps = time_steps
         self.horizontal_m_lambda = horizontal_maxi_reward
         self.horizontal_n_lambda = horizontal_mina_reward
-        self.vertical_m_lambda = vertical_maxi_reward    
+        self.vertical_m_lambda = vertical_maxi_reward
         self.vertical_n_lambda = vertical_mina_reward
 
         self.a = np.zeros((
@@ -118,13 +118,17 @@ class OriginCrossGraphSolver:
             -left, right, self.horizontal_length-2) * 0.5) / np.pi + 0.5
         vertical_initial_ratio = np.arctan(np.linspace(
             -top, bottom, self.vertical_length-2) * 0.5) / np.pi + 0.5
-        self.m[0, self.origin[0], 1:-1] = self.horizontal_m_lambda * horizontal_initial_ratio
-        self.m[0, 1:-1, self.origin[1]] = self.vertical_m_lambda * vertical_initial_ratio
-        self.n[0, self.origin[0], 1:-1] = self.horizontal_n_lambda * (1 - horizontal_initial_ratio)
-        self.n[0, 1:-1, self.origin[1]] = self.vertical_n_lambda * (1 - vertical_initial_ratio)
+        self.m[0, self.origin[0], 1:-
+               1] = self.horizontal_m_lambda * horizontal_initial_ratio
+        self.m[0, 1:-1, self.origin[1]
+               ] = self.vertical_m_lambda * vertical_initial_ratio
+        self.n[0, self.origin[0], 1:-
+               1] = self.horizontal_n_lambda * (1 - horizontal_initial_ratio)
+        self.n[0, 1:-1, self.origin[1]
+               ] = self.vertical_n_lambda * (1 - vertical_initial_ratio)
 
     def find_next_move(self, t: int, i: int, j: int) \
-        -> tuple[tuple[int, int], tuple[int, int]]:
+            -> tuple[tuple[int, int], tuple[int, int]]:
         m_max = {}
         m_max[(i-1, j)] = self.m[t-1, i-1, j]
         m_max[(i+1, j)] = self.m[t-1, i+1, j]
@@ -140,7 +144,7 @@ class OriginCrossGraphSolver:
         v_minus = max(n_max.keys(), key=n_max.get)
 
         return v_plus, v_minus
-    
+
     def iterateABMN(self, t: int, debug: bool = False) -> None:
         if debug:
             print(f"-------------- step {t} --------------")
@@ -155,23 +159,27 @@ class OriginCrossGraphSolver:
                 self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
                     / (delta_m / delta_n + 1)
                 self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
-                maxi_wager_ratio = self.a[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
-                mina_wager_ratio = self.b[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                maxi_wager_ratio = self.a[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
+                mina_wager_ratio = self.b[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
                 self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
-                    + mina_wager_ratio * self.m[t-1, *v_minus] - self.a[t, i, j]
+                    + mina_wager_ratio * \
+                    self.m[t-1, *v_minus] - self.a[t, i, j]
                 self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
-                    + mina_wager_ratio * self.n[t-1, *v_minus] - self.b[t, i, j]
-                
+                    + mina_wager_ratio * \
+                    self.n[t-1, *v_minus] - self.b[t, i, j]
+
                 if debug:
-                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"\
+                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"
                           .format(i, j, v_plus, v_minus, delta_m, delta_n))
-                    
+
         if debug:
             print("a = {}".format(self.a[t]))
             print("b = {}".format(self.b[t]))
             print("m = {}".format(self.m[t]))
             print("n = {}".format(self.n[t]))
-    
+
     def solve(self, debug: bool = False) -> None:
         for t in range(1, self.time_steps):
             if t % max((self.time_steps // 10), 1) == 0:
@@ -185,7 +193,8 @@ class MatrixGraphSolver:
     def __init__(
             self,
             m_map: np.ndarray[tuple[int, int], float],
-            n_map: np.ndarray[tuple[int, int], float],     # [(left corner), (right corner)]
+            # [(left corner), (right corner)]
+            n_map: np.ndarray[tuple[int, int], float],
             boundary_coords: list[tuple[int, int]],
             time_steps: int = 100,
     ):
@@ -199,23 +208,23 @@ class MatrixGraphSolver:
         self.n = np.tile(n_map, (time_steps, 1, 1))
 
     def find_next_move(self, t: int, i: int, j: int) \
-        -> tuple[tuple[int, int], tuple[int, int]]:
+            -> tuple[tuple[int, int], tuple[int, int]]:
         m_max = {}
         n_max = {}
 
         for row, col in [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]:
             if row < 0 or row >= self.m_map.shape[0] \
-                or col < 0 or col >= self.m_map.shape[1] \
-                or self.m_map[row, col] == np.inf:
+                    or col < 0 or col >= self.m_map.shape[1] \
+                    or self.m_map[row, col] == np.inf:
                 continue
             m_max[(row, col)] = self.m[t-1, row, col]
             n_max[(row, col)] = self.n[t-1, row, col]
-        
+
         v_plus = max(m_max.keys(), key=m_max.get)
         v_minus = max(n_max.keys(), key=n_max.get)
 
         return v_plus, v_minus
-    
+
     def iterateABMN(self, t: int, debug: bool = False) -> None:
         if debug:
             print(f"-------------- step {t} --------------")
@@ -224,7 +233,7 @@ class MatrixGraphSolver:
             for j in range(0, self.m_map.shape[1]):
                 if self.m_map[i, j] == np.inf or (i, j) in self.bounds:
                     continue
-                
+
                 v_plus, v_minus = self.find_next_move(t, i, j)
 
                 delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
@@ -234,30 +243,34 @@ class MatrixGraphSolver:
                     / (delta_m / delta_n + 1)
                 self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
 
-                maxi_wager_ratio = self.a[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
-                mina_wager_ratio = self.b[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                maxi_wager_ratio = self.a[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
+                mina_wager_ratio = self.b[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
                 self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
-                    + mina_wager_ratio * self.m[t-1, *v_minus] - self.a[t, i, j]
+                    + mina_wager_ratio * \
+                    self.m[t-1, *v_minus] - self.a[t, i, j]
                 self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
-                    + mina_wager_ratio * self.n[t-1, *v_minus] - self.b[t, i, j]
-                
+                    + mina_wager_ratio * \
+                    self.n[t-1, *v_minus] - self.b[t, i, j]
+
                 if debug:
-                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"\
+                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"
                           .format(i, j, v_plus, v_minus, delta_m, delta_n))
-                    
+
         if debug:
             print("a = {}".format(self.a[t]))
             print("b = {}".format(self.b[t]))
             print("m = {}".format(self.m[t]))
             print("n = {}".format(self.n[t]))
-    
+
     def solve(self, debug: bool = False) -> None:
         if debug:
             print("-------------- initial values --------------")
             print("bounds = {}".format(self.bounds))
             print("m = {}".format(self.m[0]))
             print("n = {}".format(self.n[0]))
-        
+
         for t in range(1, self.time_steps):
             if t % max((self.time_steps // 10), 1) == 0:
                 self.iterateABMN(t, debug)
@@ -269,11 +282,12 @@ class GridSolver:
 
     def __init__(
             self,
-            boundary_coords: tuple[int, int] = (3,3),        # (top right corner)
+            boundary_coords: tuple[int, int] = (
+                3, 3),        # (top right corner)
             time_steps: int = 100
     ):
         self.time_steps = time_steps
-        self.bounds = [(0,0), boundary_coords]
+        self.bounds = [(0, 0), boundary_coords]
         self.x_len = boundary_coords[0]
         self.y_len = boundary_coords[1]
         self.a = np.zeros((time_steps, self.x_len, self.y_len))
@@ -294,31 +308,29 @@ class GridSolver:
                         else:
                             self.m[t][x][y] = x+y
                             self.n[t][x][y] = 1/(x+y)
-                    
 
         # initial values
         self.a[0] = np.random.rand(self.x_len, self.y_len)
         self.b[0] = np.random.rand(self.x_len, self.y_len)
 
-
     def find_next_move(self, t: int, i: int, j: int) \
-        -> tuple[tuple[int, int], tuple[int, int]]:
+            -> tuple[tuple[int, int], tuple[int, int]]:
         m_max = {}
         n_max = {}
 
         for row, col in [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]:
             if row < 0 or row >= self.m_map.shape[0] \
-                or col < 0 or col >= self.m_map.shape[1] \
-                or self.m_map[row, col] == np.inf:
+                    or col < 0 or col >= self.m_map.shape[1] \
+                    or self.m_map[row, col] == np.inf:
                 continue
             m_max[(row, col)] = self.m[t-1, row, col]
             n_max[(row, col)] = self.n[t-1, row, col]
-        
+
         v_plus = max(m_max.keys(), key=m_max.get)
         v_minus = max(n_max.keys(), key=n_max.get)
 
         return v_plus, v_minus
-    
+
     def iterateABMN(self, t: int, debug: bool = False) -> None:
         if debug:
             print(f"-------------- step {t} --------------")
@@ -327,7 +339,7 @@ class GridSolver:
             for j in range(0, self.m_map.shape[1]):
                 if self.m_map[i, j] == np.inf or (i, j) in self.bounds:
                     continue
-                
+
                 v_plus, v_minus = self.find_next_move(t, i, j)
 
                 delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
@@ -343,32 +355,36 @@ class GridSolver:
                     / (delta_m / delta_n + 1)
                 self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
 
-                maxi_wager_ratio = self.a[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
-                mina_wager_ratio = self.b[t, i, j] / (self.a[t, i, j] + self.b[t, i, j])
+                maxi_wager_ratio = self.a[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
+                mina_wager_ratio = self.b[t, i, j] / \
+                    (self.a[t, i, j] + self.b[t, i, j])
                 self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
-                    + mina_wager_ratio * self.m[t-1, *v_minus] - self.a[t, i, j]
+                    + mina_wager_ratio * \
+                    self.m[t-1, *v_minus] - self.a[t, i, j]
                 self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
-                    + mina_wager_ratio * self.n[t-1, *v_minus] - self.b[t, i, j]
-                
+                    + mina_wager_ratio * \
+                    self.n[t-1, *v_minus] - self.b[t, i, j]
+
                 if debug:
-                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"\
+                    print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"
                           .format(i, j, v_plus, v_minus, delta_m, delta_n))
-                    
+
         if debug:
             print("a = {}".format(self.a[t]))
             print("b = {}".format(self.b[t]))
             print("m = {}".format(self.m[t]))
             print("n = {}".format(self.n[t]))
-    
+
     def solve(self, debug: bool = False) -> None:
         if debug:
             print("-------------- initial values --------------")
             print("bounds = {}".format(self.bounds))
             print("a = {}".format(self.a[0]))
             print("b = {}".format(self.b[0]))
-            # print("m = {}".format(self.m[0]))
-            # print("n = {}".format(self.n[0]))
-        
+            print("m = {}".format(self.m[0]))
+            print("n = {}".format(self.n[0]))
+
         for t in range(1, self.time_steps):
             if t % max((self.time_steps // 10), 1) == 0:
                 self.iterateABMN(t, debug)
@@ -376,6 +392,5 @@ class GridSolver:
                 self.iterateABMN(t)
 
 
-
 # Main
-GridSolver(boundary_coords=(4,4), time_steps=5).solve(debug=True)
+#GridSolver(boundary_coords=(4, 4), time_steps=5).solve(debug=True)
