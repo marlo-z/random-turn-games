@@ -391,6 +391,3 @@ class GridSolver:
             else:
                 self.iterateABMN(t)
 
-
-# Main
-#GridSolver(boundary_coords=(4, 4), time_steps=5).solve(debug=True)
