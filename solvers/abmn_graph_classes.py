@@ -235,24 +235,30 @@ class MatrixGraphSolver:
                     continue
 
                 v_plus, v_minus = self.find_next_move(t, i, j)
+                if v_plus == v_minus:
+                    self.a[t, i, j] = 0
+                    self.b[t, i, j] = 0
+                    self.m[t, i, j] = self.m[t-1, *v_plus]
+                    self.n[t, i, j] = self.n[t-1, *v_minus]
 
-                delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
-                delta_n = self.n[t-1, *v_minus] - self.n[t-1, *v_plus]
+                else:
+                    delta_m = self.m[t-1, *v_plus] - self.m[t-1, *v_minus]
+                    delta_n = self.n[t-1, *v_minus] - self.n[t-1, *v_plus]
 
-                self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
-                    / (delta_m / delta_n + 1)
-                self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
+                    self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
+                        / (delta_m / delta_n + 1)
+                    self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
 
-                maxi_wager_ratio = self.a[t, i, j] / \
-                    (self.a[t, i, j] + self.b[t, i, j])
-                mina_wager_ratio = self.b[t, i, j] / \
-                    (self.a[t, i, j] + self.b[t, i, j])
-                self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
-                    + mina_wager_ratio * \
-                    self.m[t-1, *v_minus] - self.a[t, i, j]
-                self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
-                    + mina_wager_ratio * \
-                    self.n[t-1, *v_minus] - self.b[t, i, j]
+                    maxi_wager_ratio = self.a[t, i, j] / \
+                        (self.a[t, i, j] + self.b[t, i, j])
+                    mina_wager_ratio = self.b[t, i, j] / \
+                        (self.a[t, i, j] + self.b[t, i, j])
+                    self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
+                        + mina_wager_ratio * \
+                        self.m[t-1, *v_minus] - self.a[t, i, j]
+                    self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
+                        + mina_wager_ratio * \
+                        self.n[t-1, *v_minus] - self.b[t, i, j]
 
                 if debug:
                     print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"
@@ -276,7 +282,19 @@ class MatrixGraphSolver:
                 self.iterateABMN(t, debug)
             else:
                 self.iterateABMN(t)
+    def find_batteground(self, t, tolerance_ratio = 3):
+        battleground = []
+        a = self.a
+        b = self.b
+        for i in range(len(a[0])):
+            for j in range(len(a[i])):
+                m = max(a[t][i][j] , b[t][i][j])
+                n = min(a[t][i][j] , b[t][i][j])
+                ratio = m / n if n != 0 else float('inf')
+                if ratio < tolerance_ratio:
+                    battleground.append((i,j))
 
+        return battleground
 
 class GridSolver:
 
@@ -391,3 +409,6 @@ class GridSolver:
             else:
                 self.iterateABMN(t)
 
+
+# Main
+#GridSolver(boundary_coords=(4, 4), time_steps=5).solve(debug=True)

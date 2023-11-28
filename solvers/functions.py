@@ -119,4 +119,3 @@ def interp_n_matrix(map):
         for y in range(cols):
             map_copy[(x, y)] = rows+cols-x-y-2
     return map_copy
-
