@@ -106,16 +106,23 @@ def arctan_interp_full(map):
 def interp_m_matrix(map):
     map_copy = map.copy()
     rows, cols = map_copy.shape
+    bounds = [(0, 0), (rows-1, cols-1)]
+    diff = map_copy[bounds[1]]-map_copy[bounds[0]]
+    print(diff)
     for x in range(rows):
         for y in range(cols):
-            map_copy[(x, y)] = x+y
+            if (x, y) not in bounds:
+                map_copy[(x, y)] = (x*diff/(rows+cols-2)) + \
+                    (y*diff/(rows+cols-2))
     return map_copy
-
 
 def interp_n_matrix(map):
     map_copy = map.copy()
     rows, cols = map_copy.shape
+    bounds = [(0, 0), (rows-1, cols-1)]
+    diff = map_copy[bounds[0]]-map_copy[bounds[1]]
     for x in range(rows):
         for y in range(cols):
-            map_copy[(x, y)] = rows+cols-x-y-2
+            if (x,y) not in bounds:
+                map_copy[(x, y)] = diff-(x*diff/(rows+cols-2))-(y*diff/(rows+cols-2))
     return map_copy

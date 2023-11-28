@@ -293,7 +293,6 @@ class MatrixGraphSolver:
                 ratio = m / n if n != 0 else float('inf')
                 if ratio < tolerance_ratio:
                     battleground.append((i,j))
-
         return battleground
 
 class GridSolver:
