@@ -256,21 +256,22 @@ class MatrixGraphSolver:
                             self.m[t, i, j] = self.m[t-1, *v_plus]
                             self.n[t, i, j] = self.n[t-1, *v_plus]
                     else:
-                        self.b[t, i, j] = delta_m / (delta_m / delta_n + 1) \
-                            / (delta_m / delta_n + 1)
-                        self.a[t, i, j] = (delta_m / delta_n) * self.b[t, i, j]
+                        temp_ratio = delta_m/delta_n
+                        self.b[t, i, j] = delta_m / (temp_ratio + 1) \
+                            / (temp_ratio + 1)
+                        self.a[t, i, j] = (temp_ratio) * self.b[t, i, j]
 
-                        maxi_wager_ratio = self.a[t, i, j] / \
-                            (self.a[t, i, j] + self.b[t, i, j])
-                        mina_wager_ratio = self.b[t, i, j] / \
-                            (self.a[t, i, j] + self.b[t, i, j])
-                        self.m[t, i, j] = maxi_wager_ratio * self.m[t-1, *v_plus] \
+                        a_plus_b = self.a[t, i, j] + self.b[t, i, j]
+                        maxi_wager_ratio = self.a[t, i, j] / a_plus_b
+                        mina_wager_ratio = self.b[t, i, j] / a_plus_b
+                        temp_m = maxi_wager_ratio * self.m[t-1, *v_plus] \
                             + mina_wager_ratio * \
                             self.m[t-1, *v_minus] - self.a[t, i, j]
-                        self.n[t, i, j] = maxi_wager_ratio * self.n[t-1, *v_plus] \
+                        temp_n = maxi_wager_ratio * self.n[t-1, *v_plus] \
                             + mina_wager_ratio * \
                             self.n[t-1, *v_minus] - self.b[t, i, j]
-
+                        self.m[t, i, j] = temp_m
+                        self.n[t, i, j] = temp_n
                 if debug:
                     print("current position: ({}, {}), v_plus = {}, v_minus = {}, delta_m = {}, delta_n = {}"
                           .format(i, j, v_plus, v_minus, delta_m, delta_n))

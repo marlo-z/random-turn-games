@@ -108,7 +108,6 @@ def interp_m_matrix(map):
     rows, cols = map_copy.shape
     bounds = [(0, 0), (rows-1, cols-1)]
     diff = map_copy[bounds[1]]-map_copy[bounds[0]]
-    print(diff)
     for x in range(rows):
         for y in range(cols):
             if (x, y) not in bounds:
