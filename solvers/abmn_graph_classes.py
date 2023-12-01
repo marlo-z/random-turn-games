@@ -299,8 +299,9 @@ class MatrixGraphSolver:
         battleground = []
         a = self.a
         b = self.b
-        for i in range(len(a[0])):
-            for j in range(len(a[i])):
+        _, rows, cols = a.shape
+        for i in range(rows):
+            for j in range(cols):
                 m = max(a[t][i][j], b[t][i][j])
                 n = min(a[t][i][j], b[t][i][j])
                 ratio = m / n if n != 0 else float('inf')
