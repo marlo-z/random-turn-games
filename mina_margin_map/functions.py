@@ -38,6 +38,42 @@ def di(x, i = 0):
     return ((w(inner) + 3) ** 2) / (8 * (w(inner) + 1))
 
 
+'''Memoized indexed basis functions'''
+def si_memo(x, memo, i = 0):
+    if i == 0:
+        return x
+    elif i > 0:
+        if f"s{i-1}" in memo:
+            inner = memo[f"s{i-1}"]
+        else:
+            inner = si(x, memo, i - 1)
+            memo[f"s{i-1}"] = inner
+        return s(inner)
+    else:
+        if f"s{i+1}" in memo:
+            inner = memo[f"s{i+1}"]
+        else:
+            inner = si(x, memo, i + 1)
+            memo[f"s{i+1}"] = inner
+        return sm(inner)
+
+def ci_memo(x, memo, i = 0):
+    if f"s{i}" in memo:
+        inner = memo[f"s{i}"]
+    else:
+        inner = si(x, i)
+        memo[f"s{i}"] = inner
+    return ((w(inner) + 3) ** 2) / 16
+
+def di_memo(x, memo, i = 0):
+    if f"s{i}" in memo:
+        inner = memo[f"s{i}"]
+    else:
+        inner = si(x, i)
+        memo[f"s{i}"] = inner
+    return ((w(inner) + 3) ** 2) / (8 * (w(inner) + 1))
+
+
 '''Composite functions'''
 def Pi(x, i = 0):
     if i < 0:
@@ -95,9 +131,61 @@ def Gi(x, i = 0):
 def Hi(x, i = 0):
     return sum([-cpi(x, -j) / (ci(x, -j) - 1) for j in range(1, i + 1)])
 
+
+'''Memoized composite functions'''
+def Pi_memo(x, i = 0):
+    memo = {}
+    def wrapper(x, i):
+        if i < 0:
+            raise ValueError("i must be greater than or equal to 0")
+        elif i == 0:
+            return 1
+        else:
+            return wrapper(x, i - 1) + math.prod([ci_memo(x, memo, j) - 1 for j in range(0, i)])
+    return wrapper(x, i)
+
+def Si_memo(x, i = 0):
+    memo = {}
+    def wrapper(x, i):
+        if i < 0:
+            raise ValueError("i must be greater than or equal to 0")
+        elif i == 0:
+            return 1
+        else:
+            return wrapper(x, i - 1) + math.prod([di_memo(x, memo, j) - 1 for j in range(0, i)])
+    return wrapper(x, i)
+    
+def Qi_memo(x, i = 0):
+    memo = {}
+    def wrapper(x, i):
+        if i < 0:
+            raise ValueError("i must be greater than or equal to 0")
+        elif i == 0 or i == 1:
+            return 0
+        else:
+            return wrapper(x, i - 1) + math.prod([1 / (ci_memo(x, memo, -j) - 1) for j in range(1, i)])
+    return wrapper(x, i)
+    
+def Ti_memo(x, i = 0):
+    memo = {}
+    def wrapper(x, i):
+        if i < 0:
+            raise ValueError("i must be greater than or equal to 0")
+        elif i == 0 or i == 1:
+            return 0
+        else:
+            return wrapper(x, i - 1) + math.prod([1 / (di_memo(x, memo, -j) - 1) for j in range(1, i)])
+    return wrapper(x, i)
+
+
 '''Mina margin map'''
 def M(l, k, x):
     return (x * (Si(x, k) + Ti(x, l))) / (Pi(x, k) + Qi(x, l))
+
+
+'''Memorized Mina margin map'''
+def M_memo(l, k, x):
+    return (x * (Si_memo(x, k) + Ti_memo(x, l))) / (Pi_memo(x, k) + Qi_memo(x, l))
 
 
 '''Basis function derivatives'''
@@ -178,10 +266,10 @@ def plot_w_bound(start, end, n_partition):
     y = [M(5, 4, i) for i in x]
     mesh = (end - start) / n_partition
     x_part = [i for i in np.arange(start, end, mesh)]
-    y_up = [(i + mesh) * (Si(i + mesh, 4) + Ti(i + mesh, 5)) 
-            / (Pi(i + mesh, 4) + Qi(i + mesh, 5)) for i in x_part]
-    y_low = [(i) * (Si(i, 4) + Ti(i, 5)) 
-             / (Pi(i + mesh, 4) + Qi(i + mesh, 5)) for i in x_part]
+    y_up = [(i + mesh) * (Si(i + mesh, 4) + Ti(i, 5)) 
+            / (Pi(i + mesh, 4) + Qi(i, 5)) for i in x_part]
+    y_low = [(i) * (Si(i, 4) + Ti(i + mesh, 5)) 
+             / (Pi(i + mesh, 4) + Qi(i, 5)) for i in x_part]
     plt.plot(x, y)
     plt.plot(x_part, y_up)
     plt.plot(x_part, y_low)
