@@ -1,0 +1,161 @@
+\documentclass{article}
+\usepackage{amsfonts, amsmath, amssymb, amsthm, dsfont, mathtools}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage[margin=1in]{geometry}
+\setstretch{1.15}
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+
+\title{M54 conjecture}
+\author{Neo Lee, Adam Ousherovitch, Shaolun Zhang}
+\date{November 2023}
+
+% https://www.math.ucla.edu/~pak/papers/how-to-write1.pdf
+% https://web.mit.edu/jrickert/www/mathadvice.html
+% https://terrytao.wordpress.com/advice-on-writing-papers/ https://arxiv.org/abs/2209.07451
+
+\begin{document}
+
+\maketitle
+
+\section{\centering Abstract}
+
+\section{\centering Introduction}
+This paper proves the necessary and sufficient condition for the existence of time-invariant Nash
+Equilibrium for the stake-governed random turn game -- Trail of Lost Pennies -- introduced by
+[Hammond]. Trail of Lost Pennies is a variant of Tug-of-war, a class of games that has a history
+dates back to [some year] by [author name]. 
+
+\subsection{\centering Game set up}
+The Trail of Lost Pennies plays on the infinite integer line with a counter initially placed at the
+origin. In the beginning of each turn, two players, namely Maxine (who plays to the right) and Mina
+(who plays to the left), wager a non-negative finite real amount, denoted $a$ and $b$ respectively.
+Then, the counter moves one unit to the right with probability $\frac{a}{a+b}$, else moves one unit
+to the left. Hence, the counter's location $X$ is a discrete stochastic process
+$X(t):\mathbb{N}\to\mathbb{Z}$, mapping from the game's time-step to counter's location (we take
+$\mathbb{N}$ to include zero).
+
+If the counter's location tends to $+\infty$ as $t\to\infty$, Maxine and Mina receive a predefined
+payout, denoted $m_{\infty}$ and $n_{\infty}$ respectively, while receiving a predefined payout
+$m_{-\infty}$ and $n_{-\infty}$ respectively when the counter's location tends to $-\infty$, with
+the payouts constrained by $m_{-\infty}<m_{\infty}$ and $n_{\infty} < n_{-\infty}$. Therefore, we
+can specify our game set up entirely on the 4 parameters and denote our game by Trail($m_{-\infty},
+m_{\infty}, n_{-\infty}, n_{\infty}$).
+
+\subsection{\centering Motivations, definitions, and theorems}
+The time-invariant Nash Equilibrium of Trail of Lost Pennies is in fact characterized by a system of
+equations, in particular its \emph{positive} solutions. Hence, we introduce the definition and
+related theorems motivate our result later.
+
+\begin{definition}[ABMN system]
+    Let $a_i, b_i, m_i, n_i \in\mathbb{R}$ be the non-negative finite wager of Maxine and Mina, mean
+    payout of Maxine and Mina respectively when counter is located at $i\in\mathbb{Z}$. Then the
+    ABMN system is the set of equations 
+    \begin{align}
+        (a_i + b_i)(m_i + a_i) & = a_i m_{i+1} + b_i m_{i-1} \\
+        (a_i + b_i)(n_i + b_i) & = a_i n_{i+1} + b_i n_{i-1} \\
+        (a_i + b_i)^2 & = b_i (m_{i+1} - m_{i+1}) \\
+        (a_i + b_i)^2 & = a_i (n_{i-1} - n_{n+1}),
+    \end{align}
+    where $i$ ranges over $\mathbb{Z}$. 
+\end{definition}
+
+\begin{definition}[ABMN solution]
+    A solution to this system of equations is said to have boundary data $(m_{-\infty}, m_{\infty},
+    n_{-\infty}, n_{\infty})$ when 
+    $$\lim_{k\to\infty}m_{-k}=m_{-\infty}, \quad \lim_{k\to\infty}m_{k}=m_{\infty}, \quad
+    \lim_{k\to\infty}n_{-k}=n_{-\infty}, \quad \lim_{k\to\infty}n_{k}=n_{\infty}.$$ For such a
+    solution, the \underline{Mina margin} is set equal to
+    $\frac{n_{-\infty}-n_{\infty}}{m_{\infty}-m_{-\infty}}$. A solution is called
+    \underline{positive} if $a_i, b_i >0$ for all $i\in\mathbb{Z}$. It is called \underline{strict}
+    if $m_{i+1}>m_i$ and $n_i>n_{i+1}$ for $i\in\mathbb{Z}$. (include strict ?)
+\end{definition}
+
+\begin{theorem}[Positive ABMN solution] (Include ?)
+    Let $\{(a_i, b_i, m_i, n_i)\in(0,\infty)^2\times\mathbb{R}^2:i\in\mathbb{Z}\}$ be a positive
+    ABMN solution. Then,
+    \begin{enumerate}
+        \item the solution is strict;
+        \item the solution has boundary conditions (data?) $(m_{-\infty}, m_{\infty}, n_{-\infty},
+        n_{\infty})$ that satisfy $m_{-\infty}<m_{\infty}$ and $n_{\infty} < n_{-\infty}$;
+        \item the values $m_{-\infty},m_{\infty},n_{\infty}$, and $n_{-\infty}$ are real numbers. As
+        such, the Mina margin $\frac{n_{-\infty}-n_{\infty}}{m_{\infty}-m_{-\infty}}$ exists and is
+        a positive finite real number.
+    \end{enumerate}
+\end{theorem}
+
+\begin{theorem}[Conditions for positive ABMN solution]
+    Let $I\subset (0,\infty)$ equal to the set of values of the Mina margin
+    $\frac{n_{-\infty}-n_{\infty}}{m_{\infty}-m_{-\infty}}$, where $\{(a_i, b_i, m_i,
+    n_i\in(0,\infty)^2\times \mathbb{R}^2:i\in\mathbb{Z}\}$ ranges over the set of positive ABMN
+    solutions. Then,
+    \begin{enumerate}
+        \item there exists a value $\lambda\in(0,1]$ such that $I = [\lambda, \lambda^{-1}]$;
+        \item a positive ABMN solution exists with boundary data $(m_{-\infty}, m_{\infty},
+        n_{-\infty}, n_{\infty})\in\mathbb{R}^4$ if and only if $m_{-\infty}<m_{\infty}$ and
+        $n_{\infty} < n_{-\infty}$ and the Mina margin
+        $\frac{n_{-\infty}-n_{\infty}}{m_{\infty}-m_{-\infty}}\in[\lambda, \lambda^{-1}]$;
+        \item the value of $\lambda$ is at most 0.999904.
+    \end{enumerate}
+\end{theorem}
+
+
+\section{\centering Main Result}
+[Hammond] conjectured that $\lambda$ is at least 0.999902, and we will provide a computer-assisted
+proof that indeed $\lambda \geq 0.999902$. We first introduce some of the tools developed in
+[Hammond] that will be useful in our proof.
+
+
+
+\subsection{\centering Some tools}
+\begin{definition}(Finite mina margin map)
+
+\end{definition}
+
+\begin{definition}
+    Set $w:(0,\infty)\to(1,\infty), w(x)=\sqrt{8x+1}$. Writing $w=w(x)$, we further set
+    $$s=\frac{(w-1)^2}{4(w+7)},\qquad c=\frac{(w+3)^2}{16}, \qquad d=\frac{(w+3)^2}{8(w+1)} \quad
+    \text{for } x\in(0,\infty)$$ 
+\end{definition}
+
+\begin{definition}
+    Let $s_{-1}:(0,\infty)\to(0,\infty)$ be given by $s_{-1}(x)=\frac{1}{s(1/x)}$. We now define a
+    collection of functions $s_i:(0,\infty)\to(0,\infty)$ indexed by $i\in\mathbb{Z}$. We begin by
+    setting $s_0(x)=x$ for $x\in(0,\infty)$. We then iteratively specify that for $i\in\mathbb{N}_+$
+    and $x\in(0,\infty), s_i(x)=s(s_{i-1}(x))$ and $s_{-1}(x)=s_{-1}(s_{-i+1}(x))$. Then, for $j\in 
+    \mathbb{Z}$, set $c_j, d_j:(0,\infty)\to(0,\infty)$ to be $c_j(x)=c(s_j(x))$ and
+    $d_j(x)=d(s_j(x))$.
+\end{definition}
+
+\begin{definition}
+    Set $P_0=S_0=1$. For $k\in\mathbb{N}$, we iteratively specify 
+    $$P_{k+1}(x)=\prod_{i=0}^{k}(c_i(x)-1) + P_{k}(x) \quad \text{and} \quad S_{k+1}(x) =
+    \prod_{i=0}^{k}(d_i(x)-1) + S_{k}(x).$$
+
+    Set $Q_1=T_1=0$. For $k\in\mathbb{N}_+$, we then set 
+    $$Q_{k+1}(x)=\prod_{i=1}^{k}(c_{-i}(x)-1)^{-1} + Q_k(x) \quad \text{and} \quad T_{k+1}(x) =
+    \prod_{i=1}^{k}(d_{-i}(x)-1)^{-1} + T_k(x).$$
+\end{definition}
+
+\begin{lemma}[Another form of mina margin map]
+    For $k\in\mathbb{N}$ and $\ell\in\mathbb{N}_+$, the finite mina margin map takes the form 
+    $$\mathcal{M}_{\ell, k}(x)=\frac{x(S_k+T_\ell)}{P_k+Q_\ell}.$$
+\end{lemma}
+\begin{lemma}
+    For $x\in[1/3, 3], |\mathcal{M}(x)-\mathcal{M}_{5,4}(x)| \leq 6.3\times 10^{-7}$.
+\end{lemma}
+
+\begin{theorem}
+    $\lambda \in [0.999902, 0.999904]$.
+\end{theorem}
+\begin{proof}
+    The upper bound has been proved in [Hammond], and we will provide a computer-assisted proof for
+    the lower bound of $\lambda$.
+
+    foo
+\end{proof}
+
+\end{document}
