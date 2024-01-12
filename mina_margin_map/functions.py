@@ -8,14 +8,12 @@ s_max = 3
 s_min = 0.02347088957957744
 
 
-def round_up(number, decimals=10):
-    multiplier = 10 ** decimals
-    return math.ceil(number * multiplier) / multiplier
+def round_up(number):
+    return math.nextafter(number, math.inf)
 
 
-def round_down(number, decimals=10):
-    multiplier = 10 ** decimals
-    return math.floor(number * multiplier) / multiplier
+def round_down(number):
+    return math.nextafter(number, -math.inf)
 
 
 ''' Basis functions '''
@@ -416,7 +414,6 @@ def print_table(x):
 
 
 print_table(.58)
-
 
 '''Memorized Mina margin map'''
 
