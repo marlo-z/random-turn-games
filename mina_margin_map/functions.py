@@ -73,7 +73,7 @@ def si(x, i=0):
 
 def upsi(x, i=0):
     if i == 0:
-        return x
+        return round_up(x)
     elif i > 0:
         inner = upsi(x, i - 1)
         return ups(inner)
@@ -84,7 +84,7 @@ def upsi(x, i=0):
 
 def downsi(x, i=0):
     if i == 0:
-        return x
+        return round_down(x)
     elif i > 0:
         inner = downsi(x, i - 1)
         return downs(inner)
@@ -368,6 +368,54 @@ def Ti_memo(x, i=0):
 
 def M(l, k, x):
     return (x * (Si(x, k) + Ti(x, l))) / (Pi(x, k) + Qi(x, l))
+
+
+def calculate_bounds(x, mesh):
+    upper = (x + mesh) * (Si(x + mesh, 4) + Ti(x, 5)) / \
+        (Pi(x, 4) + Qi(x + mesh, 5))
+    lower = x * (Si(x, 4) + Ti(x + mesh, 5)) / (Pi(x + mesh, 4) + Qi(x, 5))
+    return upper, lower
+
+
+def calculate_rounded_bounds(x, mesh):
+    upper = round_up((x + mesh) * (upSi(x + mesh, 4) + upTi(x, 5)) /
+                     (downPi(x, 4) + downQi(x + mesh, 5)))
+    lower = round_down(x * (downSi(x, 4) + downTi(x + mesh, 5)) /
+                       (upPi(x + mesh, 4) + upQi(x, 5)))
+    return upper, lower
+
+
+def print_table(x):
+    for i in range(-4, 4):
+        s1 = upsi(x, i)
+        s2 = downsi(x, i)
+        print(f"i = {i}; s_i up {s1}; s_i down {s2}")
+    for i in range(-4, 4):
+        c1 = upci(x, i)
+        c2 = downci(x, i)
+        d1 = upci(x, i)
+        d2 = downci(x, i)
+        print(f"i = {i}; c_i up {c1}; c_i down {c2}; d_i up {d1}; d_i down {d2}")
+    S1 = upSi(x, 4)
+    S2 = downSi(x, 4)
+    T1 = upTi(x, 5)
+    T2 = downTi(x, 5)
+    P1 = upPi(x, 4)
+    P2 = downPi(x, 4)
+    Q1 = upQi(x, 5)
+    Q2 = downQi(x, 5)
+    print(f"S4 up = {S1}; S4 down = {S2}")
+    print(f"T5 up = {T1}; T5 down = {T2}")
+    print(f"P4 up = {P1}; P4 down = {P2}")
+    print(f"Q5 up = {Q1}; Q5 down = {Q2}")
+    M1 = round_up((x) * (upSi(x, 4) + upTi(x, 5)) /
+                  (downPi(x, 4) + downQi(x, 5)))
+    M2 = round_down(x * (downSi(x, 4) + downTi(x, 5)) /
+                    (upPi(x, 4) + upQi(x, 5)))
+    print(f"M up = {M1}; M down = {M2}")
+
+
+print_table(.58)
 
 
 '''Memorized Mina margin map'''
