@@ -7,19 +7,46 @@ w_min = 1.914854215512675
 s_max = 3
 s_min = 0.02347088957957744
 
+
+def round_up(number, decimals=10):
+    multiplier = 10 ** decimals
+    return math.ceil(number * multiplier) / multiplier
+
+
+def round_down(number, decimals=10):
+    multiplier = 10 ** decimals
+    return math.floor(number * multiplier) / multiplier
+
 ''' Basis functions '''
 def w(x):
     return (8 * x + 1) ** (1/2)
 
+def upw(x):
+    return round_up(w(x))
+
+def downw(x):
+    return round_down(w(x))
+
 def s(x):
     return ((w(x) - 1) ** 2) / (4 * (w(x) + 7))
+
+def ups(x):
+    return ((upw(x) - 1) ** 2) / (4 * (downw(x) + 7))
+
+def downs(x):
+    return ((downw(x) - 1) ** 2) / (4 * (upw(x) + 7))
 
 def sm(x):
     return 1 / s(1 / x)
 
+def upsm(x):
+    return 1 / downs(1 / x)
+
+def downsm(x):
+    return 1 / ups(1 / x)
 
 '''Indexed basis functions'''
-def si(x, i = 0):
+def si(x, i=0):
     if i == 0:
         return x
     elif i > 0:
@@ -29,17 +56,58 @@ def si(x, i = 0):
         inner = si(x, i + 1)
         return sm(inner)
 
-def ci(x, i = 0):
+def upsi(x, i=0):
+    if i == 0:
+        return x
+    elif i > 0:
+        inner = upsi(x, i - 1)
+        return ups(inner)
+    else:
+        inner = upsi(x, i + 1)
+        return upsm(inner)
+
+def downsi(x, i=0):
+    if i == 0:
+        return x
+    elif i > 0:
+        inner = downsi(x, i - 1)
+        return downs(inner)
+    else:
+        inner = downsi(x, i + 1)
+        return downsm(inner)
+
+def ci(x, i=0):
     inner = si(x, i)
     return ((w(inner) + 3) ** 2) / 16
 
-def di(x, i = 0):
+def upci(x, i=0):
+    inner = upsi(x, i)
+    return ((upw(inner) + 3) ** 2) / 16
+
+def downci(x, i=0):
+    inner = downsi(x, i)
+    return ((downw(inner) + 3) ** 2) / 16
+
+
+def di(x, i=0):
     inner = si(x, i)
     return ((w(inner) + 3) ** 2) / (8 * (w(inner) + 1))
 
+def updi(x, i=0):
+    innerup = upsi(x, i)
+    innerdown = downsi(x, i)
+    return ((upw(innerup) + 3) ** 2) / (8 * (downw(innerdown) + 1))
+
+def downdi(x, i=0):
+    innerup = upsi(x, i)
+    innerdown = downsi(x, i)
+    return ((downw(innerdown) + 3) ** 2) / (8 * (upw(innerup) + 1))
+
 
 '''Memoized indexed basis functions'''
-def si_memo(x, memo, i = 0):
+
+
+def si_memo(x, memo, i=0):
     if i == 0:
         return x
     elif i > 0:
@@ -57,7 +125,8 @@ def si_memo(x, memo, i = 0):
             memo[f"s{i+1}"] = inner
         return sm(inner)
 
-def ci_memo(x, memo, i = 0):
+
+def ci_memo(x, memo, i=0):
     if f"s{i}" in memo:
         inner = memo[f"s{i}"]
     else:
@@ -65,7 +134,8 @@ def ci_memo(x, memo, i = 0):
         memo[f"s{i}"] = inner
     return ((w(inner) + 3) ** 2) / 16
 
-def di_memo(x, memo, i = 0):
+
+def di_memo(x, memo, i=0):
     if f"s{i}" in memo:
         inner = memo[f"s{i}"]
     else:
@@ -75,15 +145,34 @@ def di_memo(x, memo, i = 0):
 
 
 '''Composite functions'''
-def Pi(x, i = 0):
+
+
+def Pi(x, i=0):
     if i < 0:
         raise ValueError("i must be greater than or equal to 0")
     elif i == 0:
         return 1
     else:
         return Pi(x, i - 1) + math.prod([ci(x, j) - 1 for j in range(0, i)])
-    
-def Si(x, i = 0):
+
+def upPi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0:
+        return 1
+    else:
+        return upPi(x, i - 1) + math.prod([upci(x, j) - 1 for j in range(0, i)])
+
+def downPi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0:
+        return 1
+    else:
+        return downPi(x, i - 1) + math.prod([downci(x, j) - 1 for j in range(0, i)])
+
+
+def Si(x, i=0):
     if i < 0:
         raise ValueError("i must be greater than or equal to 0")
     elif i == 0:
@@ -91,7 +180,24 @@ def Si(x, i = 0):
     else:
         return Si(x, i - 1) + math.prod([di(x, j) - 1 for j in range(0, i)])
 
-def Qi(x, i = 0):
+def upSi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0:
+        return 1
+    else:
+        return upSi(x, i - 1) + math.prod([updi(x, j) - 1 for j in range(0, i)])
+
+def downSi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0:
+        return 1
+    else:
+        return downSi(x, i - 1) + math.prod([downdi(x, j) - 1 for j in range(0, i)])
+
+
+def Qi(x, i=0):
     if i < 0:
         raise ValueError("i must be greater than or equal to 0")
     elif i == 0 or i == 1:
@@ -99,42 +205,86 @@ def Qi(x, i = 0):
     else:
         return Qi(x, i - 1) + math.prod([1 / (ci(x, -j) - 1) for j in range(1, i)])
     
-def Ti(x, i = 0):
+def upQi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0 or i == 1:
+        return 0
+    else:
+        return upQi(x, i - 1) + math.prod([1 / (downci(x, -j) - 1) for j in range(1, i)])
+
+def downQi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0 or i == 1:
+        return 0
+    else:
+        return downQi(x, i - 1) + math.prod([1 / (upci(x, -j) - 1) for j in range(1, i)])
+
+
+def Ti(x, i=0):
     if i < 0:
         raise ValueError("i must be greater than or equal to 0")
     elif i == 0 or i == 1:
         return 0
     else:
         return Ti(x, i - 1) + math.prod([1 / (di(x, -j) - 1) for j in range(1, i)])
-    
-def Ai(x, i = 0):
+
+def upTi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0 or i == 1:
+        return 0
+    else:
+        return upTi(x, i - 1) + math.prod([1 / (downdi(x, -j) - 1) for j in range(1, i)])
+
+def downTi(x, i=0):
+    if i < 0:
+        raise ValueError("i must be greater than or equal to 0")
+    elif i == 0 or i == 1:
+        return 0
+    else:
+        return downTi(x, i - 1) + math.prod([1 / (updi(x, -j) - 1) for j in range(1, i)])
+
+
+def Ai(x, i=0):
     return np.prod([di(x, n) - 1 for n in range(0, i + 1)])
 
-def Bi(x, i = 0):
+
+def Bi(x, i=0):
     return np.prod([ci(x, n) - 1 for n in range(0, i + 1)])
 
-def Ci(x, i = 0):
+
+def Ci(x, i=0):
     return np.prod([1 / (di(x, -n) - 1) for n in range(1, i + 1)])
 
-def Di(x, i = 0):
+
+def Di(x, i=0):
     return np.prod([1 / (ci(x, -n) - 1) for n in range(1, i + 1)])
 
-def Ei(x, i = 0):
+
+def Ei(x, i=0):
     return sum([dpi(x, j) / (di(x, j) - 1) for j in range(0, i + 1)])
 
-def Fi(x, i = 0):
+
+def Fi(x, i=0):
     return sum([cpi(x, j) / (ci(x, j) - 1) for j in range(0, i + 1)])
 
-def Gi(x, i = 0):
+
+def Gi(x, i=0):
     return sum([-dpi(x, -j) / (di(x, -j) - 1) for j in range(1, i + 1)])
 
-def Hi(x, i = 0):
+
+def Hi(x, i=0):
     return sum([-cpi(x, -j) / (ci(x, -j) - 1) for j in range(1, i + 1)])
 
 
 '''Memoized composite functions'''
-def Pi_memo(x, i = 0):
+
+
+def Pi_memo(x, i=0):
     memo = {}
+
     def wrapper(x, i):
         if i < 0:
             raise ValueError("i must be greater than or equal to 0")
@@ -144,8 +294,10 @@ def Pi_memo(x, i = 0):
             return wrapper(x, i - 1) + math.prod([ci_memo(x, memo, j) - 1 for j in range(0, i)])
     return wrapper(x, i)
 
-def Si_memo(x, i = 0):
+
+def Si_memo(x, i=0):
     memo = {}
+
     def wrapper(x, i):
         if i < 0:
             raise ValueError("i must be greater than or equal to 0")
@@ -154,9 +306,11 @@ def Si_memo(x, i = 0):
         else:
             return wrapper(x, i - 1) + math.prod([di_memo(x, memo, j) - 1 for j in range(0, i)])
     return wrapper(x, i)
-    
-def Qi_memo(x, i = 0):
+
+
+def Qi_memo(x, i=0):
     memo = {}
+
     def wrapper(x, i):
         if i < 0:
             raise ValueError("i must be greater than or equal to 0")
@@ -165,9 +319,11 @@ def Qi_memo(x, i = 0):
         else:
             return wrapper(x, i - 1) + math.prod([1 / (ci_memo(x, memo, -j) - 1) for j in range(1, i)])
     return wrapper(x, i)
-    
-def Ti_memo(x, i = 0):
+
+
+def Ti_memo(x, i=0):
     memo = {}
+
     def wrapper(x, i):
         if i < 0:
             raise ValueError("i must be greater than or equal to 0")
@@ -179,131 +335,163 @@ def Ti_memo(x, i = 0):
 
 
 '''Mina margin map'''
+
+
 def M(l, k, x):
     return (x * (Si(x, k) + Ti(x, l))) / (Pi(x, k) + Qi(x, l))
 
 
 '''Memorized Mina margin map'''
+
+
 def M_memo(l, k, x):
     return (x * (Si_memo(x, k) + Ti_memo(x, l))) / (Pi_memo(x, k) + Qi_memo(x, l))
 
 
 '''Basis function derivatives'''
+
+
 def wp(x):
     return 4 / ((8 * x + 1) ** (1/2))
+
 
 def sp(x):
     return wp(x) * (w(x) - 1) * (w(x) + 15) / (4 * (w(x) + 7) ** 2)
 
+
 def smp(x):
     return sp(1/x) * sm(x) ** 2 / x ** 2
 
+
 def cp(x):
     return wp(x) * (w(x) + 3) / 8
+
 
 def dp(x):
     return wp(x) * (w(x) + 3) * (w(x) - 1) / (8 * (w(x) + 1) ** 2)
 
 
 '''Indexed basis function derivatives'''
-def spi(x, i = 0):
+
+
+def spi(x, i=0):
     if i == 0:
         return 1
     elif i > 0:
         return sp(si(x, i - 1)) * spi(x, i - 1)
     else:
         return smp(si(x, i + 1)) * spi(x, i + 1)
-    
-def cpi(x, i = 0):
+
+
+def cpi(x, i=0):
     return cp(si(x, i)) * spi(x, i)
 
-def dpi(x, i = 0):
+
+def dpi(x, i=0):
     return dp(si(x, i)) * spi(x, i)
 
 
 '''Mina margin map derivative'''
+
+
 def Mp(l, k, x):
     b1 = 1 / x
     b2 = block2(l, k, x)
     b3 = block3(l, k, x)
-    
+
     return (b1 + b2 - b3) * M(l, k, x)
 
+
 def block2(l, k, x):
-    return (sum([Ei(x, i) * Ai(x, i) for i in range(k)]) \
-            + sum([Gi(x, i) * Ci(x, i) for i in range (1, l - 1)])) \
-            / (Si(x, k) + Ti(x, l))
+    return (sum([Ei(x, i) * Ai(x, i) for i in range(k)])
+            + sum([Gi(x, i) * Ci(x, i) for i in range(1, l - 1)])) \
+        / (Si(x, k) + Ti(x, l))
+
 
 def block3(l, k, x):
-    return (sum([Fi(x, i) * Bi(x, i) for i in range(k)]) \
+    return (sum([Fi(x, i) * Bi(x, i) for i in range(k)])
             + sum([Hi(x, i) * Di(x, i) for i in range(1, l - 1)])) \
-            / (Pi(x, k) + Qi(x, l))
+        / (Pi(x, k) + Qi(x, l))
+
 
 '''M21 derivative'''
+
+
 def M21p(x):
     block1 = 1/x
-    block2 = (dpi(x, 0) + (-dpi(x, -1) / (di(x, -1) - 1) / (di(x, -1) - 1))) / (Si(x, 1) + Ti(x, 2))
-    block3 = (cpi(x, 0) + (-cpi(x, -1) / (ci(x, -1) - 1) / (ci(x, -1) - 1))) / (Pi(x, 1) + Qi(x, 2))
+    block2 = (dpi(x, 0) + (-dpi(x, -1) / (di(x, -1) - 1) /
+              (di(x, -1) - 1))) / (Si(x, 1) + Ti(x, 2))
+    block3 = (cpi(x, 0) + (-cpi(x, -1) / (ci(x, -1) - 1) /
+              (ci(x, -1) - 1))) / (Pi(x, 1) + Qi(x, 2))
     return (block1 + block2 - block3) * M(2, 1, x)
 
 
 '''Function derivative approximation wrapper'''
+
+
 def funcp_approx(func):
     def wrapper(x, **kwargs):
-        return (func(**kwargs, x = x + 1e-4) - func(**kwargs, x = x)) / 1e-4
+        return (func(**kwargs, x=x + 1e-4) - func(**kwargs, x=x)) / 1e-4
     return wrapper
 
 
 '''Function plotter'''
+
+
 def plot(func, start, end, **kwargs):
     x = [i for i in np.arange(start, end, (end - start) / 1e4)]
-    y = [func(**kwargs, x = i) for i in x]
+    y = [func(**kwargs, x=i) for i in x]
     plt.plot(x, y)
     plt.show()
+
 
 def plot_w_bound(start, end, n_partition):
     x = [i for i in np.arange(start, end, (end - start) / 1e4)]
     y = [M(5, 4, i) for i in x]
     mesh = (end - start) / n_partition
     x_part = [i for i in np.arange(start, end, mesh)]
-    y_up = [(i + mesh) * (Si(i + mesh, 4) + Ti(i, 5)) 
+    y_up = [(i + mesh) * (Si(i + mesh, 4) + Ti(i, 5))
             / (Pi(i + mesh, 4) + Qi(i, 5)) for i in x_part]
-    y_low = [(i) * (Si(i, 4) + Ti(i + mesh, 5)) 
+    y_low = [(i) * (Si(i, 4) + Ti(i + mesh, 5))
              / (Pi(i + mesh, 4) + Qi(i, 5)) for i in x_part]
     plt.plot(x, y)
     plt.plot(x_part, y_up)
     plt.plot(x_part, y_low)
     plt.show()
 
+
 def Mp54_wrapper(func):
     def wrapper(x):
         return func(5, 4, x)
     return wrapper
 
+
 '''Bisection method'''
-def my_bisection(f, a, b, tol): 
-    # approximates a root, R, of f bounded 
-    # by a and b to within tolerance 
-    # | f(m) | < tol with m the midpoint 
+
+
+def my_bisection(f, a, b, tol):
+    # approximates a root, R, of f bounded
+    # by a and b to within tolerance
+    # | f(m) | < tol with m the midpoint
     # between a and b Recursive implementation
-    
+
     # check if a and b bound a root
     if np.sign(f(a)) == np.sign(f(b)):
         raise Exception(
-         "The scalars a and b do not bound a root")
-        
+            "The scalars a and b do not bound a root")
+
     # get midpoint
     m = (a + b)/2
-    
+
     if np.abs(f(m)) < tol:
         # stopping condition, report m as root
         return m
     elif np.sign(f(a)) == np.sign(f(m)):
-        # case where m is an improvement on a. 
+        # case where m is an improvement on a.
         # Make recursive call with a = m
         return my_bisection(f, m, b, tol)
     elif np.sign(f(b)) == np.sign(f(m)):
-        # case where m is an improvement on b. 
+        # case where m is an improvement on b.
         # Make recursive call with b = m
         return my_bisection(f, a, m, tol)
 
@@ -385,7 +573,8 @@ min_max_dict["d4_min"] = 1.0
 
 '''sp, dp, cp max and min'''
 min_max_dict["sp_max"] = 0.12398081817324916    # w \approx 3.2099, w \in [3.2, 3.3]
-min_max_dict["dp_max"] = 0.15089688320697686    # w \approx 2.06418, w \in [2, 2.1]
+# w \approx 2.06418, w \in [2, 2.1]
+min_max_dict["dp_max"] = 0.15089688320697686
 min_max_dict["cp_max"] = 2     # w \approx 1.91485, w \in [1.9, 2]
 
 
