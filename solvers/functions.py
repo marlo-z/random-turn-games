@@ -1,6 +1,5 @@
 import numpy as np
-from abmn_graph_classes import MatrixGraphSolver
-from functions import *
+#from abmn_graph_classes import MatrixGraphSolver
 
 
 def get_bounds(map: np.ndarray[tuple[int, int]]) -> list[tuple[int, int]]:
@@ -115,6 +114,7 @@ def interp_m_matrix(map):
                     (y*diff/(rows+cols-2))
     return map_copy
 
+
 def interp_n_matrix(map):
     map_copy = map.copy()
     rows, cols = map_copy.shape
@@ -122,6 +122,48 @@ def interp_n_matrix(map):
     diff = map_copy[bounds[0]]-map_copy[bounds[1]]
     for x in range(rows):
         for y in range(cols):
-            if (x,y) not in bounds:
-                map_copy[(x, y)] = diff-(x*diff/(rows+cols-2))-(y*diff/(rows+cols-2))
+            if (x, y) not in bounds:
+                map_copy[(x, y)] = diff-(x*diff/(rows+cols-2)) - \
+                    (y*diff/(rows+cols-2))
     return map_copy
+
+
+def sigmoid(x, L=1, k=1, x0=0):
+    """Sigmoid function."""
+    return L / (1 + np.exp(-k * (x - x0)))
+
+
+def initialize_m_n_matrices(rows, cols, lam, midpoint):
+    """Initialize M and N matrices with smooth transitions.
+
+    Args:
+        rows (int): Number of rows in the grid.
+        cols (int): Number of columns in the grid.
+        midpoint (tuple): The point through which the values should transition through 0.5.
+
+    Returns:
+        (np.ndarray, np.ndarray): Initialized M and N matrices.
+    """
+    M = np.zeros((rows, cols))
+    N = np.zeros((rows, cols))
+
+    # Define the parameters for the sigmoid function
+    L = 1  # Maximum value
+    k = 1  # Steepness
+    x0 = midpoint[0]  # Midpoint x for transition
+    y0 = midpoint[1]  # Midpoint y for transition
+
+    # Create grid coordinates
+    x = np.linspace(0, rows - 1, rows)
+    y = np.linspace(0, cols - 1, cols)
+    xv, yv = np.meshgrid(x, y, indexing='ij')
+
+    # Apply sigmoid function to create smooth transition for M and N
+    M = sigmoid(xv - x0, L, k) * sigmoid(yv - y0, L, k)
+    N = lam*(1 - M)
+    M[0, 0] = 0
+    M[rows-1, cols-1] = 1
+    N[0, 0] = lam
+    N[rows-1, cols-1] = 0
+
+    return M, N
