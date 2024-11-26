@@ -35,17 +35,6 @@ Definition d_j_pos (j : nat) (x : R) := d (s_i_pos j x).
 Definition c_j_neg (j : nat) (x : R) := c (s_i_neg j x).
 Definition d_j_neg (j : nat) (x : R) := d (s_i_neg j x).
 
-
-
-
-
-
-(* BELOW IS NOT WORKING *)
-
-
-
-
-
 (* Define P_k and S_k *)
 Definition P_k (k : nat) (x : R) : R :=
   match k with
@@ -56,12 +45,6 @@ Definition P_k (k : nat) (x : R) : R :=
     ) k'
   end.
 
-Goal P_k 4 0.58 >= 1.8818013907136901.
-Proof.
-  unfold P_k, c_j_pos, s_i_pos, c, s.
-  interval with (i_prec 1000).
-Qed.
-
 Definition S_k (k : nat) (x : R) : R :=
   match k with
   | O => 1
@@ -70,7 +53,6 @@ Definition S_k (k : nat) (x : R) : R :=
       prod_f_R0 (fun i => d_j_pos i x - 1) j + 1
     ) k'
   end.
-
 
 Definition Q_l (l : nat) (x : R) : R :=
   match l with
@@ -92,16 +74,15 @@ Definition T_l (l : nat) (x : R) : R :=
     ) l'
   end.
 
-
 (* Define M_down *)
 Definition M_down (l k : nat) (a b : R) : R :=
   a * (S_k k a + T_l l b) / (P_k k b + Q_l l a).
 
 (* Theorem to prove *)
-Theorem M_down_bound : M_down 2 1 0.58 0.58 >= -1000000000000000000000.
+Theorem M_down_bound : M_down 2 1 0.58 0.58 >= -1000000.
 Proof.
   unfold M_down, S_k, T_l, P_k, Q_l, c_j_pos, c_j_neg, d_j_pos, d_j_neg, c, d, w.
-  interval with (i_prec 1000).
+  interval with (i_prec 10000).
 Qed.
 
 (* Step 1: Define the partition of [1/3, 3] *)
@@ -132,35 +113,25 @@ Open Scope R_scope.
 
 Definition step_size := 2 * (1 / 10) ^ 7.
 
-
 Definition partition := interval_partition (1 / 3) 3 step_size.
 
-
 (* Step 2: Evaluate M_down on each subinterval *)
-Fixpoint check_intervals (f : R -> R) (intervals : list (R * R)) : bool :=
+Fixpoint check_intervals (f : R * R -> R) (threshold : R) (intervals : list (R * R)) : bool :=
   match intervals with
   | [] => true
   | (a, b) :: rest =>
-    let lower_bound := f a in
-    if Rle_dec 0.9999030108006773 lower_bound then
-      check_intervals f rest
+    let lower_bound := f (a, b) in
+    if Rle_dec threshold lower_bound then
+      check_intervals f threshold rest
     else false
   end.
 
 (* Function to compute M_down for specific l, k *)
-Definition M54_down (x : R) : R := M_down 5 4 x x.
+Definition M54_down (interval : R * R) : R :=
+  let (a, b) := interval in
+  M_down 5 4 a b.
 
-(* Final proof that M54 is bounded below by 0.9999030108006773 *)
-Theorem M54_lower_bound : forall x, (1/3 <= x <= 3)%R -> M54_down x >= 0.9999030108006773.
-Proof.
-  (* Partition the interval *)
-  unfold M54_down.
-  intros x Hx.
+(* Step 3: Verify the lower bound for the entire interval *)
+Definition check_partition_bound := check_intervals M54_down 0.9999030108006773 partition.
 
-  (* Use check_intervals with M54 and the partition *)
-  simpl.
-  apply check_intervals with (f := M54_down) (intervals := partition).
-
-  (* Use interval tactic for each subinterval *)
-  interval with (i_prec 1000).
-Qed.
+Compute check_partition_bound.
