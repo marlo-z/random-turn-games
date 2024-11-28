@@ -5,7 +5,6 @@ Require Import ZArith.
 Require Import Psatz.
 Require Import List.
 Import ListNotations.
-Set Warnings "-ambiguous-paths".
 
 Open Scope R_scope.
 
@@ -96,7 +95,7 @@ Qed.
 
 
 (* Step 1: Define the partition of [1/3, 3] *)
-(* Fixpoint interval_partition_aux (start step : R) (n : nat) (acc : list (R * R)) : list (R * R) :=
+Fixpoint interval_partition_aux (start step : R) (n : nat) (acc : list (R * R)) : list (R * R) :=
   match n with
   | O => acc
   | S n' =>
@@ -144,4 +143,4 @@ Definition M54_down (interval : R * R) : R :=
 (* Step 3: Verify the lower bound for the entire interval *)
 Definition check_partition_bound := check_intervals M54_down 0.9999030108006773 partition.
 
-Compute check_partition_bound. *)
+Compute check_partition_bound.
