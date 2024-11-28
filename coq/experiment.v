@@ -41,8 +41,8 @@ Definition P_k (k : nat) (x : R) : R :=
   | O => 1
   | S k' => 
     sum_f_R0 (fun j => 
-      prod_f_R0 (fun i => c_j_pos i x - 1) j + 1
-    ) k'
+      prod_f_R0 (fun i => c_j_pos i x - 1) j
+    ) k' + 1
   end.
 
 Definition S_k (k : nat) (x : R) : R :=
@@ -50,17 +50,18 @@ Definition S_k (k : nat) (x : R) : R :=
   | O => 1
   | S k' => 
     sum_f_R0 (fun j => 
-      prod_f_R0 (fun i => d_j_pos i x - 1) j + 1
-    ) k'
+      prod_f_R0 (fun i => d_j_pos i x - 1) j 
+    ) k' + 1
   end.
 
+(* Define Q_l and T_l *)
 Definition Q_l (l : nat) (x : R) : R :=
   match l with
   | O => 0
   | S O => 0
   | S (S l') => 
     sum_f_R0 (fun j => 
-      / prod_f_R0 (fun i => c_j_neg (S (S i)) x - 1) (S j)
+      prod_f_R0 (fun i => / (c_j_neg (S i) x - 1)) j
     ) l'
   end.
 
@@ -70,7 +71,7 @@ Definition T_l (l : nat) (x : R) : R :=
   | S O => 0
   | S (S l') => 
     sum_f_R0 (fun j => 
-      / prod_f_R0 (fun i => d_j_neg (S (S i)) x - 1) (S j)
+      prod_f_R0 (fun i => / (d_j_neg (S i) x - 1)) j
     ) l'
   end.
 
@@ -79,14 +80,23 @@ Definition M_down (l k : nat) (a b : R) : R :=
   a * (S_k k a + T_l l b) / (P_k k b + Q_l l a).
 
 (* Theorem to prove *)
-Theorem M_down_bound : M_down 2 1 0.58 0.58 >= -1000000.
+Theorem M_down_bound : M_down 5 4 0.58 0.5800001 >= 0.999902.
 Proof.
-  unfold M_down, S_k, T_l, P_k, Q_l, c_j_pos, c_j_neg, d_j_pos, d_j_neg, c, d, w.
-  interval with (i_prec 10000).
+  unfold M_down, S_k, T_l, P_k, Q_l, c_j_pos, c_j_neg, d_j_pos, d_j_neg, s_i_pos, s_i_neg.
+  interval with (i_prec 45).
 Qed.
 
+
+
+
+
+
+
+
+
+
 (* Step 1: Define the partition of [1/3, 3] *)
-Fixpoint interval_partition_aux (start step : R) (n : nat) (acc : list (R * R)) : list (R * R) :=
+(* Fixpoint interval_partition_aux (start step : R) (n : nat) (acc : list (R * R)) : list (R * R) :=
   match n with
   | O => acc
   | S n' =>
@@ -134,4 +144,4 @@ Definition M54_down (interval : R * R) : R :=
 (* Step 3: Verify the lower bound for the entire interval *)
 Definition check_partition_bound := check_intervals M54_down 0.9999030108006773 partition.
 
-Compute check_partition_bound.
+Compute check_partition_bound. *)
