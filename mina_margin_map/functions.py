@@ -278,32 +278,96 @@ def Ai(x, i=0):
     return np.prod([di(x, n) - 1 for n in range(0, i + 1)])
 
 
+def upAi(x, i=0):
+    return round_up(np.prod([updi(x, n) - 1 for n in range(0, i + 1)]))
+
+
+def downAi(x, i=0):
+    return round_down(np.prod([downdi(x, n) - 1 for n in range(0, i + 1)]))
+
+
 def Bi(x, i=0):
     return np.prod([ci(x, n) - 1 for n in range(0, i + 1)])
+
+
+def upBi(x, i=0):
+    return round_up(np.prod([upci(x, n) - 1 for n in range(0, i + 1)]))
+
+
+def downBi(x, i=0):
+    return round_down(np.prod([downci(x, n) - 1 for n in range(0, i + 1)]))
 
 
 def Ci(x, i=0):
     return np.prod([1 / (di(x, -n) - 1) for n in range(1, i + 1)])
 
 
+def upCi(x, i=0):
+    return round_up(np.prod([1 / (downdi(x, -n) - 1) for n in range(1, i + 1)]))
+
+
+def downCi(x, i=0):
+    return round_down(np.prod([1 / (updi(x, -n) - 1) for n in range(1, i + 1)]))
+
+
 def Di(x, i=0):
     return np.prod([1 / (ci(x, -n) - 1) for n in range(1, i + 1)])
+
+
+def upDi(x, i=0):
+    return round_up(np.prod([1 / (downci(x, -n) - 1) for n in range(1, i + 1)]))
+
+
+def downDi(x, i=0):
+    return round_down(np.prod([1 / (upci(x, -n) - 1) for n in range(1, i + 1)]))
 
 
 def Ei(x, i=0):
     return sum([dpi(x, j) / (di(x, j) - 1) for j in range(0, i + 1)])
 
 
+def upEi(x, i=0):
+    return round_up(sum([updpi(x, j) / (downdi(x, j) - 1) for j in range(0, i + 1)]))
+
+
+def downEi(x, i=0):
+    return round_down(sum([downdpi(x, j) / (updi(x, j) - 1) for j in range(0, i + 1)]))
+
+
 def Fi(x, i=0):
     return sum([cpi(x, j) / (ci(x, j) - 1) for j in range(0, i + 1)])
+
+
+def upFi(x, i=0):
+    return round_up(sum([upcpi(x, j) / (downci(x, j) - 1) for j in range(0, i + 1)]))
+
+
+def downFi(x, i=0):
+    return round_down(sum([downcpi(x, j) / (upci(x, j) - 1) for j in range(0, i + 1)]))
 
 
 def Gi(x, i=0):
     return sum([-dpi(x, -j) / (di(x, -j) - 1) for j in range(1, i + 1)])
 
 
+def upGi(x, i=0):
+    return round_up(sum([-downdpi(x, -j) / (downdi(x, -j) - 1) for j in range(1, i + 1)]))
+
+
+def downGi(x, i=0):
+    return round_down(sum([-updpi(x, -j) / (updi(x, -j) - 1) for j in range(1, i + 1)]))
+
+
 def Hi(x, i=0):
     return sum([-cpi(x, -j) / (ci(x, -j) - 1) for j in range(1, i + 1)])
+
+
+def upHi(x, i=0):
+    return round_up(sum([-downcpi(x, -j) / (downci(x, -j) - 1) for j in range(1, i + 1)]))
+
+
+def downHi(x, i=0):
+    return round_down(sum([-upcpi(x, -j) / (upci(x, -j) - 1) for j in range(1, i + 1)]))
 
 
 '''Memoized composite functions'''
@@ -375,11 +439,11 @@ def calculate_bounds(l, k, x, mesh):
     return upper, lower
 
 
-def calculate_rounded_bounds(x, mesh):
-    upper = round_up((x + mesh) * (upSi(x + mesh, 4) + upTi(x, 5)) /
-                     (downPi(x, 4) + downQi(x + mesh, 5)))
-    lower = round_down(x * (downSi(x, 4) + downTi(x + mesh, 5)) /
-                       (upPi(x + mesh, 4) + upQi(x, 5)))
+def calculate_rounded_bounds(l, k, x, mesh):
+    upper = round_up((x + mesh) * (upSi(x + mesh, k) + upTi(x, l)) /
+                     (downPi(x, k) + downQi(x + mesh, l)))
+    lower = round_down(x * (downSi(x, k) + downTi(x + mesh, l)) /
+                       (upPi(x + mesh, k) + upQi(x, l)))
     return upper, lower
 
 
@@ -429,20 +493,60 @@ def wp(x):
     return 4 / ((8 * x + 1) ** (1/2))
 
 
+def upwp(x):
+    return round_up(4 / round_down(round_down(8 * x + 1) ** (1/2)))
+
+
+def downwp(x):
+    return round_down(4 / round_up(round_up(8 * x + 1) ** (1/2)))
+
+
 def sp(x):
     return wp(x) * (w(x) - 1) * (w(x) + 15) / (4 * (w(x) + 7) ** 2)
+
+
+def upsp(x):
+    return round_up(upwp(x) * (upw(x) - 1) * (upw(x) + 15) / round_down(4 * (downw(x) + 7) ** 2))
+
+
+def downsp(x):
+    return round_down(downwp(x) * (downw(x) - 1) * (downw(x) + 15) / round_up(4 * (upw(x) + 7) ** 2))
 
 
 def smp(x):
     return sp(1/x) * sm(x) ** 2 / x ** 2
 
 
+def upsmp(x):
+    return round_up(upsp(1/x) * upsm(x) ** 2) / round_down(x ** 2)
+
+
+def downsmp(x):
+    return round_down(downsp(1/x) * downsm(x) ** 2) / round_up(x ** 2)
+
+
 def cp(x):
     return wp(x) * (w(x) + 3) / 8
 
 
+def upcp(x):
+    return upwp(x) * (upw(x) + 3) / 8
+
+
+def downcp(x):
+    return downwp(x) * (downw(x) + 3) / 8
+
+
 def dp(x):
     return wp(x) * (w(x) + 3) * (w(x) - 1) / (8 * (w(x) + 1) ** 2)
+
+
+def updp(x):
+    return upwp(x) * (upw(x) + 3) * (upw(x) - 1) / (8 * round_down((downw(x) + 1) ** 2))
+
+
+def downdp(x):
+    return downwp(x) * (downw(x) + 3) * (downw(x) - 1) / (8 * round_up((upw(x) + 1) ** 2))
 
 
 '''Indexed basis function derivatives'''
@@ -457,12 +561,46 @@ def spi(x, i=0):
         return smp(si(x, i + 1)) * spi(x, i + 1)
 
 
+def upspi(x, i=0):
+    if i == 0:
+        return 1
+    elif i > 0:
+        return upsp(upsi(x, i - 1)) * upspi(x, i - 1)
+    else:
+        return upsmp(upsi(x, i + 1)) * upspi(x, i + 1)
+
+
+def downspi(x, i=0):
+    if i == 0:
+        return 1
+    elif i > 0:
+        return downsp(downsi(x, i - 1)) * downspi(x, i - 1)
+    else:
+        return downsmp(downsi(x, i + 1)) * downspi(x, i + 1)
+
+
 def cpi(x, i=0):
     return cp(si(x, i)) * spi(x, i)
 
 
+def upcpi(x, i=0):
+    return upcp(upsi(x, i)) * upspi(x, i)
+
+
+def downcpi(x, i=0):
+    return downcp(downsi(x, i)) * downspi(x, i)
+
+
 def dpi(x, i=0):
     return dp(si(x, i)) * spi(x, i)
+
+
+def updpi(x, i=0):
+    return updp(upsi(x, i)) * upspi(x, i)
+
+
+def downdpi(x, i=0):
+    return downdp(downsi(x, i)) * downspi(x, i)
 
 
 '''Mina margin map derivative'''
@@ -476,10 +614,22 @@ def block2_upper(l, k, x, mesh):
         / (Si(x, k) + Ti(x + mesh, l))
 
 
+def block2_upper_rounded(l, k, x, mesh):
+    return round_up(round_up(sum([upEi(x, i) * upAi(x + mesh, i) for i in range(k)]))
+                    + round_up(sum([upGi(x + mesh, i) * upCi(x, i) for i in range(1, l - 1)]))) \
+        / round_down(downSi(x, k) + downTi(x + mesh, l))
+
+
 def block2_lower(l, k, x, mesh):
     return (sum([Ei(x + mesh, i) * Ai(x, i) for i in range(k)])
             + sum([Gi(x, i) * Ci(x + mesh, i) for i in range(1, l - 1)])) \
         / (Si(x + mesh, k) + Ti(x, l))
+
+
+def block2_lower_rounded(l, k, x, mesh):
+    return round_down(round_down(sum([downEi(x + mesh, i) * downAi(x, i) for i in range(k)]))
+                      + round_down(sum([downGi(x, i) * downCi(x + mesh, i) for i in range(1, l - 1)]))) \
+        / round_up(upSi(x + mesh, k) + upTi(x, l))
 
 
 def block2(l, k, x):
@@ -494,10 +644,22 @@ def block3_upper(l, k, x, mesh):
         / (Pi(x, k) + Qi(x + mesh, l))
 
 
+def block3_upper_rounded(l, k, x, mesh):
+    return round_up(round_up(sum([upFi(x, i) * upBi(x + mesh, i) for i in range(k)]))
+                    + round_up(sum([upHi(x + mesh, i) * upDi(x, i) for i in range(1, l - 1)]))) \
+        / round_down(downPi(x, k) + downQi(x + mesh, l))
+
+
 def block3_lower(l, k, x, mesh):
     return (sum([Fi(x + mesh, i) * Bi(x, i) for i in range(k)])
             + sum([Hi(x, i) * Di(x + mesh, i) for i in range(1, l - 1)])) \
         / (Pi(x + mesh, k) + Qi(x, l))
+
+
+def block3_lower_rounded(l, k, x, mesh):
+    return round_down(round_down(sum([downFi(x + mesh, i) * downBi(x, i) for i in range(k)]))
+                      + round_down(sum([downHi(x, i) * downDi(x + mesh, i) for i in range(1, l - 1)]))) \
+        / round_up(upPi(x + mesh, k) + upQi(x, l))
 
 
 def block3(l, k, x):
@@ -533,6 +695,30 @@ def calculate_derivative_bounds(l, k, x, mesh):
     lower = (b1_lower + b2_lower - b3_upper) * M54_lower
 
     return upper, lower
+
+
+print(calculate_derivative_bounds(5, 4, .999999, .000002))
+
+
+def calculate_derivative_bounds_rounded(l, k, x, mesh):
+    b1_upper = round_up(1 / x)
+    b1_lower = round_down(1 / (x + mesh))
+
+    b2_upper = block2_upper_rounded(l, k, x, mesh)
+    b2_lower = block2_lower_rounded(l, k, x, mesh)
+
+    b3_upper = block3_upper_rounded(l, k, x, mesh)
+    b3_lower = block3_lower_rounded(l, k, x, mesh)
+
+    M54_upper, M54_lower = calculate_rounded_bounds(l, k, x, mesh)
+
+    upper = round_up((b1_upper + b2_upper - b3_lower) * M54_upper)
+    lower = round_down((b1_lower + b2_lower - b3_upper) * M54_lower)
+
+    return upper, lower
+
+
+print(calculate_derivative_bounds_rounded(5, 4, .999999, .000002))
 
 
 '''M21 derivative'''
