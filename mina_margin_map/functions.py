@@ -606,8 +606,6 @@ def downdpi(x, i=0):
 '''Mina margin map derivative'''
 
 
-# TODO: deal with floating point
-
 def block2_upper(l, k, x, mesh):
     return (sum([Ei(x, i) * Ai(x + mesh, i) for i in range(k)])
             + sum([Gi(x + mesh, i) * Ci(x, i) for i in range(1, l - 1)])) \
