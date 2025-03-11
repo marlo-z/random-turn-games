@@ -674,9 +674,6 @@ def Mp(l, k, x):
     return (b1 + b2 - b3) * M(l, k, x)
 
 
-print(Mp(5, 4, 1))
-
-
 def calculate_derivative_bounds(l, k, x, mesh):
     b1_upper = 1 / x
     b1_lower = 1 / (x + mesh)
@@ -695,9 +692,6 @@ def calculate_derivative_bounds(l, k, x, mesh):
     return upper, lower
 
 
-print(calculate_derivative_bounds(5, 4, .999999, .000002))
-
-
 def calculate_derivative_bounds_rounded(l, k, x, mesh):
     b1_upper = round_up(1 / x)
     b1_lower = round_down(1 / (x + mesh))
@@ -714,9 +708,6 @@ def calculate_derivative_bounds_rounded(l, k, x, mesh):
     lower = round_down((b1_lower + b2_lower - b3_upper) * M54_lower)
 
     return upper, lower
-
-
-print(calculate_derivative_bounds_rounded(5, 4, .999999, .000002))
 
 
 '''M21 derivative'''
